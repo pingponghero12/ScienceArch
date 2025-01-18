@@ -1,0 +1,141 @@
+@startuml
+' Entity definitions
+entity "USERS" {
+  *user_id : int <<PK>>
+  --
+  username : string
+  email : string
+  created_at : datetime
+  last_login : datetime
+}
+
+entity "FOLLOW" {
+  *follow_id : int <<PK>>
+  --
+  follower_id : int <<PK>>
+  user_id : int <<PK>>
+}
+
+entity "PAPERS" {
+  *paper_id : int <<PK>>
+  --
+  title : string
+  details : text
+  published_at : datetime
+  created_at : datetime
+  updated_at : datetime
+}
+
+entity "PAPERS_GENRES" {
+  *id : int <<PK>>
+  --
+  paper_id : int <<FK>>
+  genre : string <<FK>>
+  added_at : datetime
+}
+
+entity "PAPERS_HASHTAGS" {
+  *id : int <<PK>>
+  --
+  paper_id : int <<FK>>
+  hashtag : string <<FK>>
+  added_at : datetime
+}
+
+entity "AUTHORS" {
+  *author_id : int <<PK>>
+  --
+  name : string
+  details : text
+  created_at : datetime
+  updated_at : datetime
+}
+
+entity "ACTIVITIES" {
+  *activity_id : int <<PK>>
+  --
+  user_id : int <<FK>>
+  read_state : string <<FK>>
+  description : string
+  created_at : datetime
+}
+
+entity "POSTS" {
+  *post_id : int <<PK>>
+  --
+  user_id : int <<FK>>
+  title : string
+  content : string
+  created_at : datetime
+  updated_at : datetime
+}
+
+entity "PAPERS_USER" {
+  *paper_id : int <<FK>>
+  *user_id : int <<FK>>
+  --
+  read_on : datetime
+  read_state : string <<FK>>
+}
+
+entity "PAPER_SUBMISSIONS" {
+  *submission_id : int <<PK>>
+  --
+  user_id : int <<FK>>
+  paper_id : int <<FK>>
+  status : string
+  submitted_at : datetime
+  updated_at : datetime
+}
+
+entity "AUTHOR_SUBMISSIONS" {
+  *author_submission_id : int <<PK>>
+  --
+  author_id : int <<FK>>
+  status : string
+  submitted_at : datetime
+  updated_at : datetime
+}
+
+entity "READ_STATES" {
+  *state : string <<PK>>
+}
+
+entity "GENRES" {
+  *genre : string <<PK>>
+  --
+  description : string
+  created_at : datetime
+}
+
+entity "HASHTAGS" {
+  *hashtag : string <<PK>>
+  --
+  description : string
+  created_at : datetime
+}
+
+' Relationships
+USERS ||--|{ PAPERS_USER : "reads"
+USERS ||--|{ POSTS : "creates"
+USERS ||--|{ ACTIVITIES : "performs"
+USERS ||--|{ PAPER_SUBMISSIONS : "submits"
+
+PAPERS ||--|| AUTHORS : "written by"
+PAPERS ||--|{ PAPERS_USER : "is read by"
+PAPERS ||--|{ PAPER_SUBMISSIONS : "can be submitted as"
+PAPERS ||--|{ PAPERS_GENRES : "categorized by"
+PAPERS ||--|{ PAPERS_HASHTAGS : "tagged with"
+
+AUTHORS ||--|{ AUTHOR_SUBMISSIONS : "can be submitted as"
+
+PAPERS_USER }|--|| READ_STATES : "has state"
+
+PAPERS_GENRES }|--|| GENRES : "references"
+PAPERS_HASHTAGS }|--|| HASHTAGS : "references"
+ACTIVITIES }|--|| READ_STATES : "references"
+USERS }|--|| FOLLOW : "references"
+
+note "Created by: pingponghero12\nLast updated: 2025-01-18 16:37:46" as N1
+
+@enduml

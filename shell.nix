@@ -6,5 +6,6 @@ pkgs.mkShell {
             scotty
             wai-middleware-static
         ]))
+        pkgs.plantuml
     ];
 }
