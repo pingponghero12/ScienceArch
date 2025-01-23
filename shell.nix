@@ -5,7 +5,9 @@ pkgs.mkShell {
         (pkgs.haskellPackages.ghcWithPackages (pkgs: with pkgs; [ 
             scotty
             wai-middleware-static
+            mysql-simple
         ]))
+        pkgs.haskellPackages.cabal-install
         pkgs.plantuml
         pkgs.mariadb
         pkgs.docker
