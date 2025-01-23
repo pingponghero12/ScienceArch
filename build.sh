@@ -1,4 +1,8 @@
 #/bin/bash
+
+# Build and run script
 cd app/
-ghc -o sarch ConnectDB.hs FunctionsDB.hs Main.hs
-./app/sarch
+
+if ghc -o sarch ConnectDB.hs FunctionsDB.hs Main.hs; then
+    ./sa
+fi
