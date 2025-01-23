@@ -62,6 +62,7 @@ entity "PAPERS_USER" {
   --
   read_on : datetime
   read_state : string <<FK>>
+  rating : int
 }
 
 entity "PAPERS" {
