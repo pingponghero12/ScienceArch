@@ -7,5 +7,8 @@ pkgs.mkShell {
             wai-middleware-static
         ]))
         pkgs.plantuml
+        pkgs.mariadb
+        pkgs.docker
+        pkgs.docker-compose
     ];
 }
