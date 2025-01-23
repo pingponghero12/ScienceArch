@@ -4,42 +4,27 @@ entity "USERS" {
   *user_id : int <<PK>>
   --
   username : string
-  email : string
+  description: text
+  image: string
+  read: int
+  contributions: int
   created_at : datetime
   last_login : datetime
 }
 
+entity "USER_CREDENTIALS" {
+  *credential_id : int <<PK>>
+  --
+  user_id : int <<FK>>
+  email : string
+  password_hash : string
+}
+
+USERS ||--o{ USER_CREDENTIALS : "user_id"
+
 entity "FOLLOW" {
-  *follow_id : int <<PK>>
-  --
-  follower_id : int <<PK>>
-  user_id : int <<PK>>
-}
-
-entity "PAPERS" {
-  *paper_id : int <<PK>>
-  --
-  title : string
-  details : text
-  published_at : datetime
-  created_at : datetime
-  updated_at : datetime
-}
-
-entity "PAPERS_GENRES" {
-  *id : int <<PK>>
-  --
-  paper_id : int <<FK>>
-  genre : string <<FK>>
-  added_at : datetime
-}
-
-entity "PAPERS_HASHTAGS" {
-  *id : int <<PK>>
-  --
-  paper_id : int <<FK>>
-  hashtag : string <<FK>>
-  added_at : datetime
+  *follower_id : int <<PK>>
+  *user_id : int <<PK>>
 }
 
 entity "AUTHORS" {
@@ -47,8 +32,10 @@ entity "AUTHORS" {
   --
   name : string
   details : text
+  image : string
   created_at : datetime
   updated_at : datetime
+  accepted: bool
 }
 
 entity "ACTIVITIES" {
@@ -56,7 +43,6 @@ entity "ACTIVITIES" {
   --
   user_id : int <<FK>>
   read_state : string <<FK>>
-  description : string
   created_at : datetime
 }
 
@@ -65,7 +51,7 @@ entity "POSTS" {
   --
   user_id : int <<FK>>
   title : string
-  content : string
+  content : text
   created_at : datetime
   updated_at : datetime
 }
@@ -78,23 +64,86 @@ entity "PAPERS_USER" {
   read_state : string <<FK>>
 }
 
+entity "PAPERS" {
+  *paper_id : int <<PK>>
+  --
+  title : string
+  description : text
+  format: string
+  avg_score: int
+  popularity: int
+  original_title: string
+  published_at : datetime
+  created_at : datetime
+  updated_at : datetime
+  accepted: bool
+}
+
+entity "PAPERS_GENRES" {
+  *id : int <<PK>>
+  --
+  paper_id : int <<FK>>
+  genre : string <<FK>>
+}
+
+entity "PAPERS_HASHTAGS" {
+  *id : int <<PK>>
+  --
+  paper_id : int <<FK>>
+  hashtag : string <<FK>>
+}
+
 entity "PAPER_SUBMISSIONS" {
   *submission_id : int <<PK>>
   --
   user_id : int <<FK>>
   paper_id : int <<FK>>
-  status : string
+  accepted: bool
   submitted_at : datetime
-  updated_at : datetime
+}
+
+entity "PAPER_REVISIONS" {
+  *revision_id : int <<PK>>
+  --
+  paper_id : int <<FK>>
+  user_id : int <<FK>>
+  title : string
+  description : text
+  format: string
+  revision_number : int
+  created_at : datetime
+  status : string
+}
+
+entity "REVISION_GENRES" {
+  *id : int <<PK>>
+  --
+  revision_id : int <<FK>>
+  genre : string <<FK>>
+}
+
+entity "REVISION_HASHTAGS" {
+  *id : int <<PK>>
+  --
+  revision_id : int <<FK>>
+  hashtag : string <<FK>>
 }
 
 entity "AUTHOR_SUBMISSIONS" {
   *author_submission_id : int <<PK>>
   --
   author_id : int <<FK>>
-  status : string
+  accepted: bool
   submitted_at : datetime
   updated_at : datetime
+}
+
+entity "AUTHOR_REVISIONS" {
+  *author_revision_id : int <<PK>>
+  --
+  author_id : int <<FK>>
+  accepted: bool
+  submitted_at : datetime
 }
 
 entity "READ_STATES" {
@@ -103,16 +152,10 @@ entity "READ_STATES" {
 
 entity "GENRES" {
   *genre : string <<PK>>
-  --
-  description : string
-  created_at : datetime
 }
 
 entity "HASHTAGS" {
   *hashtag : string <<PK>>
-  --
-  description : string
-  created_at : datetime
 }
 
 ' Relationships
@@ -128,6 +171,7 @@ PAPERS ||--|{ PAPERS_GENRES : "categorized by"
 PAPERS ||--|{ PAPERS_HASHTAGS : "tagged with"
 
 AUTHORS ||--|{ AUTHOR_SUBMISSIONS : "can be submitted as"
+AUTHORS ||--|{ AUTHOR_REVISIONS : "proposes"
 
 PAPERS_USER }|--|| READ_STATES : "has state"
 
@@ -136,6 +180,11 @@ PAPERS_HASHTAGS }|--|| HASHTAGS : "references"
 ACTIVITIES }|--|| READ_STATES : "references"
 USERS }|--|| FOLLOW : "references"
 
-note "Created by: pingponghero12\nLast updated: 2025-01-18 16:37:46" as N1
+PAPERS ||--|{ PAPER_REVISIONS : "has"
+PAPER_REVISIONS ||--|{ REVISION_GENRES : "proposes"
+PAPER_REVISIONS ||--|{ REVISION_HASHTAGS : "proposes"
+REVISION_GENRES }|--|| GENRES : "references"
+REVISION_HASHTAGS }|--|| HASHTAGS : "references"
+USERS ||--|{ PAPER_REVISIONS : "creates"
 
 @enduml

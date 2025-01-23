@@ -8,6 +8,7 @@ import Database.MySQL.Simple
 import Network.Wai.Middleware.Static (addBase, staticPolicy)
 import Web.Scotty
 
+-- This is just example info
 connInfo :: ConnectInfo
 connInfo =
   defaultConnectInfo
