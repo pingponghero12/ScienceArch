@@ -106,20 +106,14 @@ AFTER INSERT ON POSTS
 
 2. Paper Update Triggers:
 ```sql
-CREATE TRIGGER after_revision_approve
-AFTER UPDATE ON PAPER_REVISIONS
--- Updates main paper record when revision is approved
-
-CREATE TRIGGER update_timestamp
-BEFORE UPDATE ON PAPERS
--- Automatically updates updated_at timestamp
-```
-
-3. Statistics Triggers:
-```sql
-CREATE TRIGGER update_paper_stats
-AFTER INSERT ON PAPERS_USER
--- Updates paper statistics (avg_score, popularity)
+-- BEFORE USER UPDATE
+-- AFTER PAPERS USER DELETE
+-- BEFORE USER INSERT
+-- AFTER PAPERS USER UPDATE
+-- UPDATE PAPER STATS
+-- UPDATE TIMESTAMP
+-- AFTER REVISION APPROVE
+-- AFTER PAPER READ
 ```
 
 ### Database Normalization Analysis

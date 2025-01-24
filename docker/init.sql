@@ -5,299 +5,402 @@ FLUSH PRIVILEGES;
 CREATE USER 'super_user'@'%' IDENTIFIED BY 'some_strong_password';
 FLUSH PRIVILEGES;
 
-CREATE TABLE USERS (
-    user_id INT AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(255) NOT NULL,
-    description TEXT,
-    image VARCHAR(255),
-    read_count INT DEFAULT 0,
-    contributions INT DEFAULT 0,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    last_login DATETIME
-);
-
-CREATE TABLE USER_CREDENTIALS (
-    credential_id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,
-    email VARCHAR(255) NOT NULL,
-    password_hash VARCHAR(255) NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES USERS(user_id)
-);
-
-CREATE TABLE FOLLOW (
-    follower_id INT NOT NULL,
-    user_id INT NOT NULL,
-    PRIMARY KEY (follower_id, user_id),
-    FOREIGN KEY (follower_id) REFERENCES USERS(user_id),
-    FOREIGN KEY (user_id) REFERENCES USERS(user_id)
-);
-
-CREATE TABLE AUTHORS (
-    author_id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    details TEXT,
-    image VARCHAR(255),
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    accepted BOOLEAN DEFAULT FALSE
-);
-
+-- Create Tables
 CREATE TABLE READ_STATES (
-    state VARCHAR(50) PRIMARY KEY
-);
-
-CREATE TABLE ACTIVITIES (
-    activity_id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,
-    read_state VARCHAR(50),
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES USERS(user_id),
-    FOREIGN KEY (read_state) REFERENCES READ_STATES(state)
-);
-
-CREATE TABLE POSTS (
-    post_id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,
-    title VARCHAR(255) NOT NULL,
-    content TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES USERS(user_id)
-);
-
-CREATE TABLE PAPERS (
-    paper_id INT AUTO_INCREMENT PRIMARY KEY,
-    title VARCHAR(255) NOT NULL,
-    description TEXT,
-    format VARCHAR(100),
-    avg_score INT DEFAULT 0,
-    popularity INT DEFAULT 0,
-    original_title VARCHAR(255),
-    published_at DATETIME,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    accepted BOOLEAN DEFAULT FALSE
-);
-
-CREATE TABLE PAPERS_USER (
-    paper_id INT NOT NULL,
-    user_id INT NOT NULL,
-    read_on DATETIME DEFAULT CURRENT_TIMESTAMP,
-    read_state VARCHAR(50),
-    rating INT,
-    PRIMARY KEY (paper_id, user_id),
-    FOREIGN KEY (paper_id) REFERENCES PAPERS(paper_id),
-    FOREIGN KEY (user_id) REFERENCES USERS(user_id),
-    FOREIGN KEY (read_state) REFERENCES READ_STATES(state)
+  state VARCHAR(50) PRIMARY KEY
 );
 
 CREATE TABLE GENRES (
-    genre VARCHAR(50) PRIMARY KEY
+  genre VARCHAR(50) PRIMARY KEY
 );
 
 CREATE TABLE HASHTAGS (
-    hashtag VARCHAR(50) PRIMARY KEY
+  hashtag VARCHAR(50) PRIMARY KEY
+);
+
+CREATE TABLE AUTHOR_STATUS (
+  author_status VARCHAR(50) PRIMARY KEY
+);
+
+CREATE TABLE USERS (
+  user_id INT AUTO_INCREMENT PRIMARY KEY,
+  username VARCHAR(100) NOT NULL,
+  description TEXT,
+  image VARCHAR(255),
+  read INT DEFAULT 0,
+  contributions INT DEFAULT 0,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  last_login DATETIME,
+  INDEX (username)
+);
+
+CREATE TABLE USER_CREDENTIALS (
+  user_id INT PRIMARY KEY,
+  email VARCHAR(255) NOT NULL,
+  password_hash VARCHAR(255) NOT NULL,
+  FOREIGN KEY (user_id) REFERENCES USERS(user_id)
+);
+
+CREATE TABLE FOLLOW (
+  follower_id INT NOT NULL,
+  user_id INT NOT NULL,
+  PRIMARY KEY (follower_id, user_id),
+  FOREIGN KEY (follower_id) REFERENCES USERS(user_id),
+  FOREIGN KEY (user_id) REFERENCES USERS(user_id)
+);
+
+CREATE TABLE AUTHORS (
+  author_id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  details TEXT,
+  image VARCHAR(255),
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE PAPERS (
+  paper_id INT AUTO_INCREMENT PRIMARY KEY,
+  title VARCHAR(255) NOT NULL,
+  description TEXT,
+  format VARCHAR(100),
+  avg_score INT DEFAULT 0,
+  popularity INT DEFAULT 0,
+  original_title VARCHAR(255),
+  published_at DATETIME,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE POSTS (
+  post_id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  title VARCHAR(255),
+  content TEXT,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES USERS(user_id)
+);
+
+CREATE TABLE ACTIVITIES (
+  activity_id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  read_state VARCHAR(50),
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES USERS(user_id),
+  FOREIGN KEY (read_state) REFERENCES READ_STATES(state)
+);
+
+CREATE TABLE PAPERS_USER (
+  paper_id INT NOT NULL,
+  user_id INT NOT NULL,
+  read_state VARCHAR(50),
+  rating INT DEFAULT 0,
+  times_read INT DEFAULT 0,
+  PRIMARY KEY (paper_id, user_id),
+  FOREIGN KEY (paper_id) REFERENCES PAPERS(paper_id),
+  FOREIGN KEY (user_id) REFERENCES USERS(user_id),
+  FOREIGN KEY (read_state) REFERENCES READ_STATES(state)
 );
 
 CREATE TABLE PAPERS_GENRES (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    paper_id INT NOT NULL,
-    genre VARCHAR(50) NOT NULL,
-    FOREIGN KEY (paper_id) REFERENCES PAPERS(paper_id),
-    FOREIGN KEY (genre) REFERENCES GENRES(genre)
+  paper_id INT NOT NULL,
+  genre VARCHAR(50) NOT NULL,
+  PRIMARY KEY (paper_id, genre),
+  FOREIGN KEY (paper_id) REFERENCES PAPERS(paper_id),
+  FOREIGN KEY (genre) REFERENCES GENRES(genre)
 );
 
 CREATE TABLE PAPERS_HASHTAGS (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    paper_id INT NOT NULL,
-    hashtag VARCHAR(50) NOT NULL,
-    FOREIGN KEY (paper_id) REFERENCES PAPERS(paper_id),
-    FOREIGN KEY (hashtag) REFERENCES HASHTAGS(hashtag)
+  paper_id INT NOT NULL,
+  hashtag VARCHAR(50) NOT NULL,
+  PRIMARY KEY (paper_id, hashtag),
+  FOREIGN KEY (paper_id) REFERENCES PAPERS(paper_id),
+  FOREIGN KEY (hashtag) REFERENCES HASHTAGS(hashtag)
 );
 
 CREATE TABLE PAPER_SUBMISSIONS (
-    submission_id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,
-    paper_id INT NOT NULL,
-    accepted BOOLEAN DEFAULT FALSE,
-    submitted_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES USERS(user_id),
-    FOREIGN KEY (paper_id) REFERENCES PAPERS(paper_id)
-);
-
-CREATE TABLE PAPER_REVISIONS (
-    revision_id INT AUTO_INCREMENT PRIMARY KEY,
-    paper_id INT NOT NULL,
-    user_id INT NOT NULL,
-    title VARCHAR(255),
-    description TEXT,
-    format VARCHAR(100),
-    revision_number INT DEFAULT 1,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    status VARCHAR(50) DEFAULT 'pending',
-    FOREIGN KEY (paper_id) REFERENCES PAPERS(paper_id),
-    FOREIGN KEY (user_id) REFERENCES USERS(user_id)
-);
-
-CREATE TABLE REVISION_GENRES (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    revision_id INT NOT NULL,
-    genre VARCHAR(50) NOT NULL,
-    FOREIGN KEY (revision_id) REFERENCES PAPER_REVISIONS(revision_id),
-    FOREIGN KEY (genre) REFERENCES GENRES(genre)
-);
-
-CREATE TABLE REVISION_HASHTAGS (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    revision_id INT NOT NULL,
-    hashtag VARCHAR(50) NOT NULL,
-    FOREIGN KEY (revision_id) REFERENCES PAPER_REVISIONS(revision_id),
-    FOREIGN KEY (hashtag) REFERENCES HASHTAGS(hashtag)
+  submission_id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  title VARCHAR(255),
+  description TEXT,
+  format VARCHAR(100),
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  accepted TINYINT(1) NOT NULL DEFAULT 0,
+  FOREIGN KEY (user_id) REFERENCES USERS(user_id)
 );
 
 CREATE TABLE AUTHOR_SUBMISSIONS (
-    author_submission_id INT AUTO_INCREMENT PRIMARY KEY,
-    author_id INT NOT NULL,
-    accepted BOOLEAN DEFAULT FALSE,
-    submitted_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (author_id) REFERENCES AUTHORS(author_id)
+  author_submission_id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(255),
+  details TEXT,
+  image VARCHAR(255),
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  accepted TINYINT(1) NOT NULL DEFAULT 0
 );
 
 CREATE TABLE AUTHOR_REVISIONS (
-    author_revision_id INT AUTO_INCREMENT PRIMARY KEY,
-    author_id INT NOT NULL,
-    accepted BOOLEAN DEFAULT FALSE,
-    submitted_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (author_id) REFERENCES AUTHORS(author_id)
+  author_revision_id INT AUTO_INCREMENT PRIMARY KEY,
+  author_id INT NOT NULL,
+  name VARCHAR(255),
+  details TEXT,
+  image VARCHAR(255),
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  accepted TINYINT(1) NOT NULL DEFAULT 0,
+  FOREIGN KEY (author_id) REFERENCES AUTHORS(author_id)
 );
-DELIMITER $$
-CREATE TRIGGER after_paper_read
-AFTER INSERT ON PAPERS_USER
+
+CREATE TABLE AUTHOR_PAPER (
+  author_id INT NOT NULL,
+  paper_id INT NOT NULL,
+  author_status VARCHAR(50),
+  PRIMARY KEY (author_id, paper_id),
+  FOREIGN KEY (author_id) REFERENCES AUTHORS(author_id),
+  FOREIGN KEY (paper_id) REFERENCES PAPERS(paper_id),
+  FOREIGN KEY (author_status) REFERENCES AUTHOR_STATUS(author_status)
+);
+
+CREATE TABLE PAPER_REVISIONS (
+  revision_id INT AUTO_INCREMENT PRIMARY KEY,
+  paper_id INT NOT NULL,
+  user_id INT NOT NULL,
+  title VARCHAR(255),
+  description TEXT,
+  format VARCHAR(100),
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  accepted TINYINT(1) NOT NULL DEFAULT 0,
+  FOREIGN KEY (paper_id) REFERENCES PAPERS(paper_id),
+  FOREIGN KEY (user_id) REFERENCES USERS(user_id)
+);
+
+CREATE TABLE REVISION_GENRES (
+  revision_id INT NOT NULL,
+  genre VARCHAR(50) NOT NULL,
+  PRIMARY KEY (revision_id, genre),
+  FOREIGN KEY (revision_id) REFERENCES PAPER_REVISIONS(revision_id),
+  FOREIGN KEY (genre) REFERENCES GENRES(genre)
+);
+
+CREATE TABLE REVISION_HASHTAGS (
+  revision_id INT NOT NULL,
+  hashtag VARCHAR(50) NOT NULL,
+  PRIMARY KEY (revision_id, hashtag),
+  FOREIGN KEY (revision_id) REFERENCES PAPER_REVISIONS(revision_id),
+  FOREIGN KEY (hashtag) REFERENCES HASHTAGS(hashtag)
+);
+
+-- TRIGGERS
+
+-- TRIGGER: PAPER_SUBMISSION_INSERT_ADD_READ
+CREATE TRIGGER PAPER_SUBMISSION_INSERT_ADD_READ
+AFTER INSERT ON PAPER_SUBMISSIONS
 FOR EACH ROW
 BEGIN
-    -- Increase user's read_count
+  IF NEW.format <> 'Plan to read' THEN
     UPDATE USERS
-    SET read_count = read_count + 1
+    SET read = read + 1
     WHERE user_id = NEW.user_id;
+  END IF;
+END;
 
-    -- Increase paper's popularity
-    UPDATE PAPERS
-    SET popularity = popularity + 1
-    WHERE paper_id = NEW.paper_id;
-    
-    -- Recalculate average rating (assumes PAPERS_USER has a 'rating' column)
-    UPDATE PAPERS p
-    JOIN (
-        SELECT paper_id, AVG(rating) AS new_average
-        FROM PAPERS_USER
-        WHERE paper_id = NEW.paper_id
-    ) AS temp ON p.paper_id = temp.paper_id
-    SET p.avg_score = temp.new_average
-    WHERE p.paper_id = NEW.paper_id;
-END$$
-DELIMITER ;
-
-DELIMITER $$
-CREATE TRIGGER after_user_contribution
-AFTER INSERT ON POSTS
+-- TRIGGER: PAPER_SUBMISSION_UPDATE_ADD_READ
+CREATE TRIGGER PAPER_SUBMISSION_UPDATE_ADD_READ
+AFTER UPDATE ON PAPER_SUBMISSIONS
 FOR EACH ROW
 BEGIN
+  IF OLD.format = 'Plan to read' AND NEW.format <> 'Plan to read' THEN
+    UPDATE USERS
+    SET read = read + 1
+    WHERE user_id = NEW.user_id;
+  END IF;
+END;
+
+-- TRIGGER: PAPER_SUBMISSION_ACCEPTED_ADD_CONTRIBUTION
+CREATE TRIGGER PAPER_SUBMISSION_ACCEPTED_ADD_CONTRIBUTION
+AFTER UPDATE ON PAPER_SUBMISSIONS
+FOR EACH ROW
+BEGIN
+  IF OLD.accepted = 0 AND NEW.accepted = 1 THEN
     UPDATE USERS
     SET contributions = contributions + 1
     WHERE user_id = NEW.user_id;
-END$$
-DELIMITER ;
+  END IF;
+END;
 
-DELIMITER $$
-CREATE TRIGGER after_revision_approve
+-- TRIGGER: PAPER_REVISION_ACCEPTED_ADD_CONTRIBUTION
+CREATE TRIGGER PAPER_REVISION_ACCEPTED_ADD_CONTRIBUTION
 AFTER UPDATE ON PAPER_REVISIONS
 FOR EACH ROW
 BEGIN
-    IF NEW.status = 'approved' AND OLD.status <> 'approved' THEN
-        UPDATE PAPERS
-        SET title = NEW.title,
-            description = NEW.description,
-            format = NEW.format,
-            updated_at = CURRENT_TIMESTAMP,
-            accepted = TRUE
-        WHERE paper_id = NEW.paper_id;
-    END IF;
-END$$
-DELIMITER ;
+  IF OLD.accepted = 0 AND NEW.accepted = 1 THEN
+    UPDATE USERS
+    SET contributions = contributions + 1
+    WHERE user_id = NEW.user_id;
+  END IF;
+END;
 
-DELIMITER $$
-CREATE TRIGGER update_timestamp
-BEFORE UPDATE ON PAPERS
+-- TRIGGER: AUTHOR_SUBMISSION_ACCEPTED_ADD_CONTRIBUTION
+CREATE TRIGGER AUTHOR_SUBMISSION_ACCEPTED_ADD_CONTRIBUTION
+AFTER UPDATE ON AUTHOR_SUBMISSIONS
 FOR EACH ROW
 BEGIN
-    SET NEW.updated_at = CURRENT_TIMESTAMP;
-END$$
-DELIMITER ;
+  IF OLD.accepted = 0 AND NEW.accepted = 1 THEN
+    UPDATE USERS
+    SET contributions = contributions + 1
+    WHERE user_id = 999999999;
+  END IF;
+END;
 
-DELIMITER $$
-CREATE TRIGGER update_paper_stats
+-- TRIGGER: AUTHOR_REVISION_ACCEPTED_ADD_CONTRIBUTION
+CREATE TRIGGER AUTHOR_REVISION_ACCEPTED_ADD_CONTRIBUTION
+AFTER UPDATE ON AUTHOR_REVISIONS
+FOR EACH ROW
+BEGIN
+  IF OLD.accepted = 0 AND NEW.accepted = 1 THEN
+    UPDATE USERS
+    SET contributions = contributions + 1
+    WHERE user_id = 999999999;
+  END IF;
+END;
+
+-- TRIGGER: PAPERS_USER_INSERT_ACTIVITY
+CREATE TRIGGER PAPERS_USER_INSERT_ACTIVITY
 AFTER INSERT ON PAPERS_USER
 FOR EACH ROW
 BEGIN
-    UPDATE PAPERS
-    SET popularity = popularity + 1
-    WHERE paper_id = NEW.paper_id;
-END$$
-DELIMITER ;
+  INSERT INTO ACTIVITIES (user_id, read_state, created_at)
+  VALUES (NEW.user_id, NEW.read_state, CURRENT_TIMESTAMP);
+END;
 
-DELIMITER $$
-CREATE TRIGGER after_papers_user_update
+-- TRIGGER: PAPERS_USER_UPDATE_ACTIVITY
+CREATE TRIGGER PAPERS_USER_UPDATE_ACTIVITY
 AFTER UPDATE ON PAPERS_USER
 FOR EACH ROW
 BEGIN
-    UPDATE PAPERS p
-    JOIN (
-        SELECT paper_id, AVG(rating) AS new_average
-        FROM PAPERS_USER
-        WHERE paper_id = NEW.paper_id
-    ) AS temp ON p.paper_id = temp.paper_id
-    SET p.avg_score = temp.new_average
-    WHERE p.paper_id = NEW.paper_id;
-END$$
-DELIMITER ;
+  INSERT INTO ACTIVITIES (user_id, read_state, created_at)
+  VALUES (NEW.user_id, NEW.read_state, CURRENT_TIMESTAMP);
+END;
 
-DELIMITER $$
-CREATE TRIGGER before_user_insert
-BEFORE INSERT ON USERS
+-- TRIGGER: POST_UPDATE_TIMESTAMP
+CREATE TRIGGER POST_UPDATE_TIMESTAMP
+BEFORE UPDATE ON POSTS
 FOR EACH ROW
 BEGIN
-    SET NEW.created_at = CURRENT_TIMESTAMP;
-END$$
-DELIMITER ;
+  SET NEW.updated_at = CURRENT_TIMESTAMP;
+END;
 
-DELIMITER $$
-CREATE TRIGGER after_papers_user_delete
-AFTER DELETE ON PAPERS_USER
+-- TRIGGER: PAPER_REVISION_ACCEPTED_UPDATE_PAPER
+CREATE TRIGGER PAPER_REVISION_ACCEPTED_UPDATE_PAPER
+AFTER UPDATE ON PAPER_REVISIONS
 FOR EACH ROW
 BEGIN
-    UPDATE PAPERS
-    SET popularity = popularity - 1
-    WHERE paper_id = OLD.paper_id;
+  IF OLD.accepted = 0 AND NEW.accepted = 1 THEN
+    DELETE FROM PAPERS_GENRES WHERE paper_id = NEW.paper_id;
+    DELETE FROM PAPERS_HASHTAGS WHERE paper_id = NEW.paper_id;
+    INSERT INTO PAPERS_GENRES (paper_id, genre)
+      SELECT NEW.paper_id, rg.genre
+      FROM REVISION_GENRES rg
+      WHERE rg.revision_id = NEW.revision_id;
+    INSERT INTO PAPERS_HASHTAGS (paper_id, hashtag)
+      SELECT NEW.paper_id, rh.hashtag
+      FROM REVISION_HASHTAGS rh
+      WHERE rh.revision_id = NEW.revision_id;
+  END IF;
+END;
 
-    UPDATE PAPERS p
-    JOIN (
-        SELECT paper_id, AVG(rating) AS new_average
-        FROM PAPERS_USER
-        WHERE paper_id = OLD.paper_id
-    ) AS temp ON p.paper_id = temp.paper_id
-    SET p.avg_score = IFNULL(temp.new_average, 0)
-    WHERE p.paper_id = OLD.paper_id;
-END$$
-DELIMITER ;
-
-DELIMITER $$
-CREATE TRIGGER before_user_update
-BEFORE UPDATE ON USERS
+-- TRIGGER: PAPER_DELETE_CLEAR_REFERENCES
+CREATE TRIGGER PAPER_DELETE_CLEAR_REFERENCES
+AFTER DELETE ON PAPERS
 FOR EACH ROW
 BEGIN
-    IF NEW.last_login IS NULL THEN
-        SET NEW.last_login = CURRENT_TIMESTAMP;
-    END IF;
-END$$
+  DELETE FROM PAPERS_USER WHERE paper_id = OLD.paper_id;
+  DELETE FROM AUTHOR_PAPER WHERE paper_id = OLD.paper_id;
+END;
+
+-- TRIGGER: USER_DELETE_CLEAR_REFERENCES
+CREATE TRIGGER USER_DELETE_CLEAR_REFERENCES
+AFTER DELETE ON USERS
+FOR EACH ROW
+BEGIN
+  DELETE FROM ACTIVITIES WHERE user_id = OLD.user_id;
+  DELETE FROM PAPERS_USER WHERE user_id = OLD.user_id;
+  DELETE FROM FOLLOW WHERE user_id = OLD.user_id OR follower_id = OLD.user_id;
+END;
+
+-- TRIGGER: AUTHOR_SUBMISSION_ACCEPTED_CREATE_AUTHOR
+CREATE TRIGGER AUTHOR_SUBMISSION_ACCEPTED_CREATE_AUTHOR
+AFTER UPDATE ON AUTHOR_SUBMISSIONS
+FOR EACH ROW
+BEGIN
+  IF OLD.accepted = 0 AND NEW.accepted = 1 THEN
+    INSERT INTO AUTHORS (name, details, image, created_at, updated_at)
+    VALUES (NEW.name, NEW.details, NEW.image, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+  END IF;
+END;
+
+-- TRIGGER: AUTHOR_REVISION_ACCEPTED_UPDATE_AUTHOR
+CREATE TRIGGER AUTHOR_REVISION_ACCEPTED_UPDATE_AUTHOR
+AFTER UPDATE ON AUTHOR_REVISIONS
+FOR EACH ROW
+BEGIN
+  IF OLD.accepted = 0 AND NEW.accepted = 1 THEN
+    UPDATE AUTHORS
+    SET name = NEW.name, details = NEW.details, image = NEW.image, updated_at = CURRENT_TIMESTAMP
+    WHERE author_id = NEW.author_id;
+  END IF;
+END;
+
+
+-- ADD USER
+DELIMITER $$
+
+CREATE PROCEDURE CreateUserProcedure(
+    IN p_email VARCHAR(255),
+    IN p_password_hash VARCHAR(255),
+    IN p_username VARCHAR(100)
+)
+BEGIN
+    DECLARE exit HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+    END;
+
+    START TRANSACTION;
+
+    INSERT INTO USERS (
+        username,
+        description,
+        image,
+        read,
+        contributions,
+        created_at,
+        last_login
+    ) VALUES (
+        p_username,
+        NULL,
+        NULL,
+        0,
+        0,
+        CURRENT_TIMESTAMP,
+        NULL
+    );
+
+    INSERT INTO USER_CREDENTIALS (
+        user_id,
+        email,
+        password_hash
+    ) VALUES (
+        LAST_INSERT_ID(),
+        p_email,
+        p_password_hash
+    );
+
+    COMMIT;
+END $$
+
 DELIMITER ;
+
+CREATE VIEW AllUsers AS
+SELECT
+    u.user_id,
+    u.username,
+FROM USERS u;

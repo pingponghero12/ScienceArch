@@ -3,7 +3,7 @@
 entity "USERS" {
   *user_id : int <<PK>>
   --
-  username : string
+  username : string INDEX HASHMAP
   description: text
   image: string
   read: int
@@ -13,9 +13,8 @@ entity "USERS" {
 }
 
 entity "USER_CREDENTIALS" {
-  *credential_id : int <<PK>>
+  *user_id : int <<PK>>
   --
-  user_id : int <<FK>>
   email : string
   password_hash : string
 }
@@ -35,9 +34,9 @@ entity "AUTHORS" {
   image : string
   created_at : datetime
   updated_at : datetime
-  accepted: bool
 }
 
+' ID needed since it is possible to have change to reading twize or more
 entity "ACTIVITIES" {
   *activity_id : int <<PK>>
   --
@@ -60,9 +59,9 @@ entity "PAPERS_USER" {
   *paper_id : int <<FK>>
   *user_id : int <<FK>>
   --
-  read_on : datetime
   read_state : string <<FK>>
   rating : int
+  times_read : int
 }
 
 entity "PAPERS" {
@@ -77,30 +76,27 @@ entity "PAPERS" {
   published_at : datetime
   created_at : datetime
   updated_at : datetime
-  accepted: bool
 }
 
 entity "PAPERS_GENRES" {
-  *id : int <<PK>>
-  --
-  paper_id : int <<FK>>
-  genre : string <<FK>>
+  *paper_id : int <<PK>>
+  *genre : string <<PK>>
 }
 
 entity "PAPERS_HASHTAGS" {
-  *id : int <<PK>>
-  --
-  paper_id : int <<FK>>
-  hashtag : string <<FK>>
+  *paper_id : int <<PK>>
+  *hashtag : string <<PK>>
 }
 
 entity "PAPER_SUBMISSIONS" {
   *submission_id : int <<PK>>
   --
   user_id : int <<FK>>
-  paper_id : int <<FK>>
+  title : string
+  description : text
+  format : string
+  created_at : datetime
   accepted: bool
-  submitted_at : datetime
 }
 
 entity "PAPER_REVISIONS" {
@@ -111,40 +107,51 @@ entity "PAPER_REVISIONS" {
   title : string
   description : text
   format: string
-  revision_number : int
   created_at : datetime
-  status : string
+  accepted : bool
 }
 
+' No ID NEEDED
 entity "REVISION_GENRES" {
-  *id : int <<PK>>
-  --
-  revision_id : int <<FK>>
-  genre : string <<FK>>
+  *revision_id : int <<PK>>
+  *genre : string <<PK>>
 }
 
 entity "REVISION_HASHTAGS" {
-  *id : int <<PK>>
-  --
-  revision_id : int <<FK>>
-  hashtag : string <<FK>>
+  *revision_id : int <<PK>>
+  *hashtag : string <<PK>>
 }
 
 entity "AUTHOR_SUBMISSIONS" {
   *author_submission_id : int <<PK>>
   --
-  author_id : int <<FK>>
+  name : string
+  details : string
+  image : string
+  created_at : datetime
   accepted: bool
-  submitted_at : datetime
-  updated_at : datetime
+}
+
+entity "AUTHOR_PAPER" {
+  *author_id : int <<PK>>
+  *paper_id : int <<PK>>
+  --
+  author_status : string <<FK>>
+}
+
+entity "AUTHOR_STATUS" {
+  *author_status : string <<PK>>
 }
 
 entity "AUTHOR_REVISIONS" {
   *author_revision_id : int <<PK>>
   --
   author_id : int <<FK>>
+  name : string
+  details : string
+  image : string
+  created_at : datetime
   accepted: bool
-  submitted_at : datetime
 }
 
 entity "READ_STATES" {
@@ -165,7 +172,7 @@ USERS ||--|{ POSTS : "creates"
 USERS ||--|{ ACTIVITIES : "performs"
 USERS ||--|{ PAPER_SUBMISSIONS : "submits"
 
-PAPERS ||--|| AUTHORS : "written by"
+PAPERS ||--|{ AUTHOR_PAPER : "is writen by"
 PAPERS ||--|{ PAPERS_USER : "is read by"
 PAPERS ||--|{ PAPER_SUBMISSIONS : "can be submitted as"
 PAPERS ||--|{ PAPERS_GENRES : "categorized by"
@@ -173,6 +180,9 @@ PAPERS ||--|{ PAPERS_HASHTAGS : "tagged with"
 
 AUTHORS ||--|{ AUTHOR_SUBMISSIONS : "can be submitted as"
 AUTHORS ||--|{ AUTHOR_REVISIONS : "proposes"
+AUTHORS ||--|{ AUTHOR_PAPER : "wrote"
+
+AUTHOR_PAPER }|--|| AUTHOR_STATUS : "has state"
 
 PAPERS_USER }|--|| READ_STATES : "has state"
 
