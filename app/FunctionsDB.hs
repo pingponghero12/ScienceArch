@@ -12,10 +12,10 @@ import Web.Scotty
 
 addUser :: Connection -> Text -> Text -> IO ()
 addUser conn userName email = do
-  execute conn "INSERT INTO users (username, email) VALUES (?, ?)" (userName :: Text, email :: Text)
+  execute conn "CALL CreateUserProcedure(?, 'dupa', ?)" (userName :: Text, email :: Text)
   return ()
 
-getUsers :: Connection -> IO [(Text, Text)]
+getUsers :: Connection -> IO [(Int, Text)]
 getUsers conn = do
-  results <- query_ conn "SELECT username, email FROM users"
-  return $ map (\(username, email) -> (decodeUtf8 username, decodeUtf8 email)) results
+  results <- query_ conn "SELECT * FROM AllUsers"
+  return $ map (\(user_id, username) -> (user_id, username)) results

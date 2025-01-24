@@ -1,14 +1,3 @@
--- Create users
-CREATE USER 'normal_user'@'127.0.0.1' IDENTIFIED BY 'normal1234';
-GRANT SELECT ON papers_db.AllUsers TO 'normal_user'@'127.0.0.1';
-GRANT EXECUTE ON papers_db.CreateUserProcedure TO 'normal_user'@'127.0.0.1';
-FLUSH PRIVILEGES;
-
-CREATE USER 'super_user'@'127.0.0.1' IDENTIFIED BY 'super1234';
-GRANT SELECT ON papers_db.AllUsers TO 'super_user'@'127.0.0.1';
-GRANT EXECUTE ON papers_db.CreateUserProcedure TO 'super_user'@'127.0.0.1';
-FLUSH PRIVILEGES;
-
 -- Create Tables
 CREATE TABLE READ_STATES (
   state VARCHAR(50) PRIMARY KEY
@@ -411,3 +400,16 @@ SELECT
     u.user_id,
     u.username
 FROM USERS u;
+
+-- Create users
+CREATE USER 'normal_user'@'%' IDENTIFIED BY 'normal1234';
+GRANT SELECT ON papers_db.AllUsers TO 'normal_user'@'%';
+GRANT EXECUTE ON PROCEDURE papers_db.CreateUserProcedure TO 'normal_user'@'%';
+FLUSH PRIVILEGES;
+
+CREATE USER 'super_user'@'%' IDENTIFIED BY 'super1234';
+GRANT SELECT ON papers_db.AllUsers TO 'super_user'@'%';
+GRANT EXECUTE ON PROCEDURE papers_db.CreateUserProcedure TO 'super_user'@'%';
+FLUSH PRIVILEGES;
+
+
