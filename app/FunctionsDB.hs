@@ -19,3 +19,8 @@ getUsers :: Connection -> IO [(Int, Text)]
 getUsers conn = do
   results <- query_ conn "SELECT * FROM AllUsers"
   return $ map (\(user_id, username) -> (user_id, username)) results
+
+verifyUser :: Connection -> Text -> Text -> IO Int
+verifyUser conn email password = do
+  [Only userId] <- query conn "CALL AuthorizationProcedure(?, ?, @userId); SELECT @userId;" (email, password)
+  return userId
