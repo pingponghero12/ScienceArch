@@ -46,7 +46,7 @@ bash build.sh
 
 ### The database
 The diagram of the database:
-[diag](uml/entities.png)
+![diag](uml/entities.png)
 
 #### Entity Descriptions:
 
