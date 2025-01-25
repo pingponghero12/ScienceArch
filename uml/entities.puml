@@ -96,7 +96,7 @@ entity "PAPER_SUBMISSIONS" {
   description : text
   format : string
   created_at : datetime
-  accepted: bool
+  accepted: int
 }
 
 entity "PAPER_REVISIONS" {
@@ -108,7 +108,7 @@ entity "PAPER_REVISIONS" {
   description : text
   format: string
   created_at : datetime
-  accepted : bool
+  accepted : int
 }
 
 ' No ID NEEDED
@@ -129,7 +129,7 @@ entity "AUTHOR_SUBMISSIONS" {
   details : string
   image : string
   created_at : datetime
-  accepted: bool
+  accepted: int
 }
 
 entity "AUTHOR_PAPER" {
@@ -151,7 +151,7 @@ entity "AUTHOR_REVISIONS" {
   details : string
   image : string
   created_at : datetime
-  accepted: bool
+  accepted: int
 }
 
 entity "READ_STATES" {
