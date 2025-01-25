@@ -6,6 +6,10 @@ pkgs.mkShell {
             scotty
             wai-middleware-static
             mysql-simple
+            clientsession
+            wai-session
+            bytestring
+            vault
         ]))
         pkgs.haskellPackages.cabal-install
         pkgs.plantuml

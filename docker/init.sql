@@ -395,6 +395,27 @@ END $$
 
 DELIMITER ;
 
+--- Authorization
+DELIMITER $$
+
+CREATE PROCEDURE AuthorizationProcedure(
+    IN p_email VARCHAR(255),
+    IN p_password VARCHAR(255),
+    OUT p_user_id INT
+)
+BEGIN
+  set p_user_id = 0;
+
+  SELECT user_id INTO p_user_id 
+    FROM USER_CREDENTIALS
+    WHERE email = p_email 
+    AND password_hash = SHA2(p_password, 256) 
+    LIMIT 1;
+
+END $$
+
+DELIMITER ;
+
 CREATE VIEW AllUsers AS
 SELECT
     u.user_id,
