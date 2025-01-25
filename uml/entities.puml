@@ -3,43 +3,27 @@
 entity "USERS" {
   *user_id : int <<PK>>
   --
-  username : string
-  email : string
+  username : string INDEX HASHMAP
+  description: text
+  image: string
+  read: int
+  contributions: int
   created_at : datetime
   last_login : datetime
 }
 
+entity "USER_CREDENTIALS" {
+  *user_id : int <<PK>>
+  --
+  email : string
+  password_hash : string
+}
+
+USERS ||--o{ USER_CREDENTIALS : "user_id"
+
 entity "FOLLOW" {
-  *follow_id : int <<PK>>
-  --
-  follower_id : int <<PK>>
-  user_id : int <<PK>>
-}
-
-entity "PAPERS" {
-  *paper_id : int <<PK>>
-  --
-  title : string
-  details : text
-  published_at : datetime
-  created_at : datetime
-  updated_at : datetime
-}
-
-entity "PAPERS_GENRES" {
-  *id : int <<PK>>
-  --
-  paper_id : int <<FK>>
-  genre : string <<FK>>
-  added_at : datetime
-}
-
-entity "PAPERS_HASHTAGS" {
-  *id : int <<PK>>
-  --
-  paper_id : int <<FK>>
-  hashtag : string <<FK>>
-  added_at : datetime
+  *follower_id : int <<PK>>
+  *user_id : int <<PK>>
 }
 
 entity "AUTHORS" {
@@ -47,16 +31,17 @@ entity "AUTHORS" {
   --
   name : string
   details : text
+  image : string
   created_at : datetime
   updated_at : datetime
 }
 
+' ID needed since it is possible to have change to reading twize or more
 entity "ACTIVITIES" {
   *activity_id : int <<PK>>
   --
   user_id : int <<FK>>
   read_state : string <<FK>>
-  description : string
   created_at : datetime
 }
 
@@ -65,7 +50,7 @@ entity "POSTS" {
   --
   user_id : int <<FK>>
   title : string
-  content : string
+  content : text
   created_at : datetime
   updated_at : datetime
 }
@@ -74,27 +59,99 @@ entity "PAPERS_USER" {
   *paper_id : int <<FK>>
   *user_id : int <<FK>>
   --
-  read_on : datetime
   read_state : string <<FK>>
+  rating : int
+  times_read : int
+}
+
+entity "PAPERS" {
+  *paper_id : int <<PK>>
+  --
+  title : string
+  description : text
+  format: string
+  avg_score: int
+  popularity: int
+  original_title: string
+  published_at : datetime
+  created_at : datetime
+  updated_at : datetime
+}
+
+entity "PAPERS_GENRES" {
+  *paper_id : int <<PK>>
+  *genre : string <<PK>>
+}
+
+entity "PAPERS_HASHTAGS" {
+  *paper_id : int <<PK>>
+  *hashtag : string <<PK>>
 }
 
 entity "PAPER_SUBMISSIONS" {
   *submission_id : int <<PK>>
   --
   user_id : int <<FK>>
+  title : string
+  description : text
+  format : string
+  created_at : datetime
+  accepted: bool
+}
+
+entity "PAPER_REVISIONS" {
+  *revision_id : int <<PK>>
+  --
   paper_id : int <<FK>>
-  status : string
-  submitted_at : datetime
-  updated_at : datetime
+  user_id : int <<FK>>
+  title : string
+  description : text
+  format: string
+  created_at : datetime
+  accepted : bool
+}
+
+' No ID NEEDED
+entity "REVISION_GENRES" {
+  *revision_id : int <<PK>>
+  *genre : string <<PK>>
+}
+
+entity "REVISION_HASHTAGS" {
+  *revision_id : int <<PK>>
+  *hashtag : string <<PK>>
 }
 
 entity "AUTHOR_SUBMISSIONS" {
   *author_submission_id : int <<PK>>
   --
+  name : string
+  details : string
+  image : string
+  created_at : datetime
+  accepted: bool
+}
+
+entity "AUTHOR_PAPER" {
+  *author_id : int <<PK>>
+  *paper_id : int <<PK>>
+  --
+  author_status : string <<FK>>
+}
+
+entity "AUTHOR_STATUS" {
+  *author_status : string <<PK>>
+}
+
+entity "AUTHOR_REVISIONS" {
+  *author_revision_id : int <<PK>>
+  --
   author_id : int <<FK>>
-  status : string
-  submitted_at : datetime
-  updated_at : datetime
+  name : string
+  details : string
+  image : string
+  created_at : datetime
+  accepted: bool
 }
 
 entity "READ_STATES" {
@@ -103,16 +160,10 @@ entity "READ_STATES" {
 
 entity "GENRES" {
   *genre : string <<PK>>
-  --
-  description : string
-  created_at : datetime
 }
 
 entity "HASHTAGS" {
   *hashtag : string <<PK>>
-  --
-  description : string
-  created_at : datetime
 }
 
 ' Relationships
@@ -121,13 +172,17 @@ USERS ||--|{ POSTS : "creates"
 USERS ||--|{ ACTIVITIES : "performs"
 USERS ||--|{ PAPER_SUBMISSIONS : "submits"
 
-PAPERS ||--|| AUTHORS : "written by"
+PAPERS ||--|{ AUTHOR_PAPER : "is writen by"
 PAPERS ||--|{ PAPERS_USER : "is read by"
 PAPERS ||--|{ PAPER_SUBMISSIONS : "can be submitted as"
 PAPERS ||--|{ PAPERS_GENRES : "categorized by"
 PAPERS ||--|{ PAPERS_HASHTAGS : "tagged with"
 
 AUTHORS ||--|{ AUTHOR_SUBMISSIONS : "can be submitted as"
+AUTHORS ||--|{ AUTHOR_REVISIONS : "proposes"
+AUTHORS ||--|{ AUTHOR_PAPER : "wrote"
+
+AUTHOR_PAPER }|--|| AUTHOR_STATUS : "has state"
 
 PAPERS_USER }|--|| READ_STATES : "has state"
 
@@ -136,6 +191,11 @@ PAPERS_HASHTAGS }|--|| HASHTAGS : "references"
 ACTIVITIES }|--|| READ_STATES : "references"
 USERS }|--|| FOLLOW : "references"
 
-note "Created by: pingponghero12\nLast updated: 2025-01-18 16:37:46" as N1
+PAPERS ||--|{ PAPER_REVISIONS : "has"
+PAPER_REVISIONS ||--|{ REVISION_GENRES : "proposes"
+PAPER_REVISIONS ||--|{ REVISION_HASHTAGS : "proposes"
+REVISION_GENRES }|--|| GENRES : "references"
+REVISION_HASHTAGS }|--|| HASHTAGS : "references"
+USERS ||--|{ PAPER_REVISIONS : "creates"
 
 @enduml
