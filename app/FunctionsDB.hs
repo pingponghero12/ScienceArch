@@ -10,9 +10,9 @@ import Database.MySQL.Simple
 import Network.Wai.Middleware.Static (addBase, staticPolicy)
 import Web.Scotty
 
-addUser :: Connection -> Text -> Text -> IO ()
-addUser conn userName email = do
-  execute conn "CALL CreateUserProcedure(?, 'dupa', ?)" (userName :: Text, email :: Text)
+addUser :: Connection -> Text -> Text -> Text -> IO ()
+addUser conn userName email password = do
+  execute conn "CALL CreateUserProcedure(?, ?, ?)" (email :: Text, password :: Text, userName :: Text)
   return ()
 
 getUsers :: Connection -> IO [(Int, Text)]
@@ -22,5 +22,12 @@ getUsers conn = do
 
 verifyUser :: Connection -> Text -> Text -> IO Int
 verifyUser conn email password = do
-  [Only userId] <- query conn "CALL AuthorizationProcedure(?, ?, @userId); SELECT @userId;" (email, password)
+  liftIO $ putStrLn "Debug: vU1 successful"
+  _ <- execute_ conn "SET @userId = 0"
+  liftIO $ putStrLn "Debug: vU2 successful"
+  _ <- execute conn "CALL AuthorizationProcedure(?, ?, @userId)" (email, password)
+  liftIO $ putStrLn "Debug: vU3 successful"
+
+  [Only userId] <- query_ conn "SELECT @userId"
+  liftIO $ putStrLn "Debug: vU4 successful"
   return userId

@@ -8,7 +8,10 @@ import Control.Monad.IO.Class (liftIO)
 import Data.ByteString qualified as BS
 import Data.ByteString.Lazy qualified as BSL
 import Data.Default
-import Data.Text.Lazy (Text)
+import Data.Text.Lazy (Text, toStrict)
+import Data.Text.Lazy.Builder qualified as B
+import Data.Text.Lazy.Builder.Int qualified as B
+import Data.Text.Lazy.Builder.RealFloat qualified as B
 import Data.Text.Lazy.Encoding (decodeUtf8)
 import Data.Text.Lazy.IO qualified as T
 import Data.Vault.Lazy (Key, Vault, lookup, newKey)
@@ -24,6 +27,9 @@ import Web.ClientSession (decrypt, encryptIO, randomKey)
 import Web.Scotty
 
 type UserSession = Maybe Int -- user_id
+
+intToText :: Int -> Text
+intToText = B.toLazyText . B.decimal
 
 session :: Key (Session IO BS.ByteString UserSession) -> UserSession -> ActionM UserSession
 session key val = do
@@ -41,6 +47,17 @@ session key val = do
           liftIO $ sessionInsert "session" (Just v)
           return (Just v)
 
+getSession :: Key (Session IO BS.ByteString UserSession) -> ActionM (Maybe Int)
+getSession key = do
+  vaultVal <- vault <$> request
+  case Vault.lookup key vaultVal of
+    Nothing -> return Nothing
+    Just (sessionLookup, _) -> do
+      result <- liftIO $ sessionLookup "session"
+      return $ case result of
+        Just (Just v) -> Just v
+        _ -> Nothing
+
 main :: IO ()
 main = do
   conn <- connect connInfo
@@ -57,23 +74,35 @@ main = do
     middleware sessionMiddleware
 
     get "/login" $ do
+      html =<< liftIO (T.readFile "templates/login.html")
+
+    post "/login" $ do
       email <- param @Text "email"
       password <- param @Text "password"
+      liftIO $ putStrLn "Debug: Read successful"
 
       userValid <- liftIO $ verifyUser conn email password
 
+      liftIO $ putStrLn "Debug: UserValid succesful"
       case userValid of
         0 -> html "Login unsucceful"
         userId -> do
           session sessionKey $ Just userValid
           html "Login succesful"
 
-    get "/logout" $ do
+    post "/logout" $ do
       session sessionKey Nothing
       html "Logged out"
 
     get "/" $ do
       html =<< liftIO (T.readFile "templates/home.html")
+
+    get "/profile" $ do
+      maybeUserId <- getSession sessionKey
+      case maybeUserId of
+        Nothing -> redirect "/login"
+        Just userId ->
+          do html $ "Welcome: " <> intToText userId
 
     get "/list" $ do
       html =<< liftIO (T.readFile "templates/user_list.html")
@@ -102,7 +131,7 @@ main = do
         putStrLn $ "Debug: userName = " ++ show userName
         putStrLn $ "Debug: email = " ++ show email
         putStrLn $ "Debug: password = " ++ show password
-        addUser conn userName email
+        addUser conn userName email password
       html "User has been added!"
 
     get "/users" $ do

@@ -387,7 +387,7 @@ BEGIN
     ) VALUES (
         LAST_INSERT_ID(),
         p_email,
-        p_password_hash
+        SHA2(p_password_hash, 256)
     );
 
     COMMIT;
@@ -422,15 +422,18 @@ SELECT
     u.username
 FROM USERS u;
 
+
 -- Create users
 CREATE USER 'normal_user'@'%' IDENTIFIED BY 'normal1234';
 GRANT SELECT ON papers_db.AllUsers TO 'normal_user'@'%';
 GRANT EXECUTE ON PROCEDURE papers_db.CreateUserProcedure TO 'normal_user'@'%';
+GRANT EXECUTE ON PROCEDURE papers_db.AuthorizationProcedure TO 'normal_user'@'%';
 FLUSH PRIVILEGES;
 
 CREATE USER 'super_user'@'%' IDENTIFIED BY 'super1234';
 GRANT SELECT ON papers_db.AllUsers TO 'super_user'@'%';
 GRANT EXECUTE ON PROCEDURE papers_db.CreateUserProcedure TO 'super_user'@'%';
+GRANT EXECUTE ON PROCEDURE papers_db.AuthorizationProcedure TO 'super_user'@'%';
 FLUSH PRIVILEGES;
 
 

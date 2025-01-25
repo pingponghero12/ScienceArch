@@ -4,5 +4,6 @@
 cd app/
 
 if ghc -o sa ConnectDB.hs FunctionsDB.hs Main.hs; then
-    ./sa
+    cd ..
+    ./app/sa
 fi
