@@ -8,6 +8,7 @@ import Control.Monad.IO.Class (liftIO)
 import Data.ByteString qualified as BS
 import Data.ByteString.Lazy qualified as BSL
 import Data.Default
+import Data.Maybe (isJust)
 import Data.Text.Lazy (Text, toStrict)
 import Data.Text.Lazy.Builder qualified as B
 import Data.Text.Lazy.Builder.Int qualified as B
@@ -27,9 +28,6 @@ import Web.ClientSession (decrypt, encryptIO, randomKey)
 import Web.Scotty
 
 type UserSession = Maybe Int -- user_id
-
-intToText :: Int -> Text
-intToText = B.toLazyText . B.decimal
 
 session :: Key (Session IO BS.ByteString UserSession) -> UserSession -> ActionM UserSession
 session key val = do
@@ -74,25 +72,40 @@ main = do
     middleware sessionMiddleware
 
     get "/" $ do
-      liftIO $ putStrLn "Debug: / in"
+      html =<< liftIO (T.readFile "templates/base.html")
+
+    get "/home" $ do
+      html =<< liftIO (T.readFile "templates/home.html")
+
+    -- API for HTMX
+    get "/nav-links" $ do
       maybeUserId <- getSession sessionKey
-      activities <- liftIO $ getLatestActivities conn 20
-      posts <- liftIO $ getLatestPosts conn 20
-      readingList <- case maybeUserId of
+      maybeUserId <- getSession sessionKey
+      liftIO $ putStrLn $ "Debug nav-links: maybeUserId = " ++ show maybeUserId
+      case maybeUserId of
+        Nothing -> do
+          liftIO $ putStrLn "Nothing"
+          html $ renderNavLinksTemplate False ""
+        Just uid -> do
+          liftIO $ putStrLn "just"
+          username <- liftIO $ getUserName conn uid
+          html $ renderNavLinksTemplate True username
+
+    get "/auth-section" $ do
+      maybeUserId <- getSession sessionKey
+      html $ renderAuthSectionTemplate (isJust maybeUserId)
+
+    get "/reading-list" $ do
+      maybeUserId <- getSession sessionKey
+      readings <- case maybeUserId of
         Nothing -> return []
         Just uid -> liftIO $ getUserReading conn uid 5
+      html $ renderReadingListTemplate readings
 
-      liftIO $
-        putStrLn
-          ( "Debug: Home => Activities: "
-              ++ show activities
-              ++ ", Posts: "
-              ++ show posts
-              ++ ", Reading: "
-              ++ show readingList
-          )
-      liftIO $ putStrLn "Debug: / last"
-      html =<< liftIO (T.readFile "templates/home.html")
+    get "/activity-posts" $ do
+      activities <- liftIO $ getLatestActivities conn 20
+      posts <- liftIO $ getLatestPosts conn 20
+      html $ renderActivityPostsTemplate activities posts
 
     get "/login" $ do
       html =<< liftIO (T.readFile "templates/login.html")
@@ -122,6 +135,9 @@ main = do
         Just userId ->
           do html $ "Welcome: " <> intToText userId
 
+    get "/register" $ do
+      html =<< liftIO (T.readFile "templates/register.html")
+
     post "/add_user" $ do
       liftIO $ putStrLn "Debug: Received POST /add_user request"
       userName <- param @Text "username"
@@ -146,3 +162,14 @@ main = do
         Just (userId, userName, desc, img) -> do
           liftIO $ putStrLn ("Debug: /users/:username => " ++ show userName)
           html =<< liftIO (T.readFile "templates/user.html")
+
+    get "/users/:username/readlist" $ do
+      userNameParam <- param @Text "username"
+      readlist <- liftIO $ getUserReadlistByUsername conn userNameParam
+      liftIO $ putStrLn ("Debug: /users/:username/readlist => " ++ show readlist)
+      html =<< liftIO (T.readFile "templates/readlist.html")
+
+    get "/browse" $ do
+      paperList <- liftIO $ getTopPapers conn 100
+      liftIO $ putStrLn ("Debug: /browse => " ++ show paperList)
+      html =<< liftIO (T.readFile "templates/browse.html")

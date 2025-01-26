@@ -64,6 +64,21 @@ entity "PAPERS_USER" {
   times_read : int
 }
 
+entity "PAPER_CITATIONS" {
+  *paper_id : int <<PK>>
+  *citation_id : int <<PK>>
+}
+
+entity "PAPER_CITES" {
+  *paper_id : int <<PK>>
+  *cites_id : int <<PK>>
+}
+
+entity "PAPER_SIMILAR" {
+  *paper_id : int <<PK>>
+  *similar_id : int <<PK>>
+}
+
 entity "PAPERS" {
   *paper_id : int <<PK>>
   --
@@ -177,6 +192,10 @@ PAPERS ||--|{ PAPERS_USER : "is read by"
 PAPERS ||--|{ PAPER_SUBMISSIONS : "can be submitted as"
 PAPERS ||--|{ PAPERS_GENRES : "categorized by"
 PAPERS ||--|{ PAPERS_HASHTAGS : "tagged with"
+
+PAPERS }|--|| PAPER_CITATIONS : "references"
+PAPERS }|--|| PAPER_CITES : "references"
+PAPERS }|--|| PAPER_SIMILAR : "references"
 
 AUTHORS ||--|{ AUTHOR_SUBMISSIONS : "can be submitted as"
 AUTHORS ||--|{ AUTHOR_REVISIONS : "proposes"

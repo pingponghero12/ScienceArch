@@ -95,6 +95,30 @@ CREATE TABLE PAPERS_USER (
   FOREIGN KEY (read_state) REFERENCES READ_STATES(state)
 );
 
+CREATE TABLE PAPER_CITATIONS (
+  paper_id INT NOT NULL,
+  citation_id INT NOT NULL,
+  PRIMARY KEY (paper_id, citation_id),
+  FOREIGN KEY (paper_id) REFERENCES PAPERS(paper_id),
+  FOREIGN KEY (citation_id) REFERENCES PAPERS(paper_id)
+);
+
+CREATE TABLE PAPER_CITES (
+  paper_id INT NOT NULL,
+  cites_id INT NOT NULL,
+  PRIMARY KEY (paper_id, cites_id),
+  FOREIGN KEY (paper_id) REFERENCES PAPERS(paper_id),
+  FOREIGN KEY (cites_id) REFERENCES PAPERS(paper_id)
+);
+
+CREATE TABLE PAPER_SIMILAR (
+  paper_id INT NOT NULL,
+  similar_id INT NOT NULL,
+  PRIMARY KEY (paper_id, similar_id),
+  FOREIGN KEY (paper_id) REFERENCES PAPERS(paper_id),
+  FOREIGN KEY (similar_id) REFERENCES PAPERS(paper_id)
+);
+
 CREATE TABLE PAPERS_GENRES (
   paper_id INT NOT NULL,
   genre VARCHAR(50) NOT NULL,
