@@ -14,7 +14,7 @@ connInfo =
   defaultConnectInfo
     { connectHost = "127.0.0.1",
       connectPort = 3306,
-      connectUser = "normal_user",
-      connectPassword = "normal1234",
+      connectUser = "admin",
+      connectPassword = "1234",
       connectDatabase = "papers_db"
     }

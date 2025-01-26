@@ -31,3 +31,42 @@ verifyUser conn email password = do
   [Only userId] <- query_ conn "SELECT @userId"
   liftIO $ putStrLn "Debug: vU4 successful"
   return userId
+
+getLatestPosts :: Connection -> Int -> IO [(Int, Int, Text, Text)]
+getLatestPosts conn limitCount = do
+  query
+    conn
+    "SELECT post_id, user_id, title, content \
+    \FROM POSTS ORDER BY created_at DESC LIMIT ?"
+    (Only limitCount)
+
+getLatestActivities :: Connection -> Int -> IO [(Int, Int, Maybe Text)]
+getLatestActivities conn limitCount = do
+  query
+    conn
+    "SELECT activity_id, user_id, read_state \
+    \FROM ACTIVITIES ORDER BY created_at DESC LIMIT ?"
+    (Only limitCount)
+
+getUserReading :: Connection -> Int -> Int -> IO [(Int, Text)]
+getUserReading conn userId limitCount = do
+  query
+    conn
+    "SELECT p.paper_id, p.title \
+    \FROM PAPERS p \
+    \INNER JOIN PAPERS_USER pu ON p.paper_id = pu.paper_id \
+    \WHERE pu.user_id = ? \
+    \ORDER BY pu.times_read DESC \
+    \LIMIT ?"
+    (userId, limitCount)
+
+getUserInfoByUsername :: Connection -> Text -> IO (Maybe (Int, Text, Maybe Text, Maybe Text))
+getUserInfoByUsername conn userNameParam = do
+  results <-
+    query
+      conn
+      "SELECT user_id, username, description, image FROM USERS WHERE username = ? LIMIT 1"
+      (Only userNameParam)
+  case results of
+    [(uid, uname, desc, img)] -> return (Just (uid, uname, desc, img))
+    _ -> return Nothing

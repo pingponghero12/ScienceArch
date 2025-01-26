@@ -75,12 +75,12 @@ bash build.sh
 4. Accept resubmit author
 
 ### Subsites
-1. Home
+1. Home -> 20 latest activities or posts, 5 articles that user is reading, 
 2. /users/<username> - same goes for seeing your profile
 3. Your reading list -> /users/<username>/readlist
     - public for everyone
-4. /browse
-5. /setting
+4. /browse -> Paper list(top 100 papers based on popularity)
+5. /setting -> by default profile
     - /account -> username, email password, delete user
     - /profile -> description, image
 6. /admin

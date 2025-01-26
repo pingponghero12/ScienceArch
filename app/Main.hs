@@ -73,6 +73,27 @@ main = do
     middleware $ staticPolicy (addBase "static")
     middleware sessionMiddleware
 
+    get "/" $ do
+      liftIO $ putStrLn "Debug: / in"
+      maybeUserId <- getSession sessionKey
+      activities <- liftIO $ getLatestActivities conn 20
+      posts <- liftIO $ getLatestPosts conn 20
+      readingList <- case maybeUserId of
+        Nothing -> return []
+        Just uid -> liftIO $ getUserReading conn uid 5
+
+      liftIO $
+        putStrLn
+          ( "Debug: Home => Activities: "
+              ++ show activities
+              ++ ", Posts: "
+              ++ show posts
+              ++ ", Reading: "
+              ++ show readingList
+          )
+      liftIO $ putStrLn "Debug: / last"
+      html =<< liftIO (T.readFile "templates/home.html")
+
     get "/login" $ do
       html =<< liftIO (T.readFile "templates/login.html")
 
@@ -94,33 +115,12 @@ main = do
       session sessionKey Nothing
       html "Logged out"
 
-    get "/" $ do
-      html =<< liftIO (T.readFile "templates/home.html")
-
     get "/profile" $ do
       maybeUserId <- getSession sessionKey
       case maybeUserId of
         Nothing -> redirect "/login"
         Just userId ->
           do html $ "Welcome: " <> intToText userId
-
-    get "/list" $ do
-      html =<< liftIO (T.readFile "templates/user_list.html")
-
-    get "/search" $ do
-      html =<< liftIO (T.readFile "templates/search.html")
-
-    get "/article/:id" $ do
-      artId <- param @Text "id"
-      html =<< liftIO (T.readFile "templates/article.html")
-
-    get "/user/:username" $ do
-      username <- param @Text "username"
-      html =<< liftIO (T.readFile "templates/user.html")
-
-    get "/author/:authorId" $ do
-      authorId <- param @Text "authorId"
-      html =<< liftIO (T.readFile "templates/author.html")
 
     post "/add_user" $ do
       liftIO $ putStrLn "Debug: Received POST /add_user request"
@@ -137,3 +137,12 @@ main = do
     get "/users" $ do
       users <- liftIO $ getUsers conn
       json users
+
+    get "/users/:username" $ do
+      userNameParam <- param @Text "username"
+      maybeUserInfo <- liftIO $ getUserInfoByUsername conn userNameParam
+      case maybeUserInfo of
+        Nothing -> html "User not found"
+        Just (userId, userName, desc, img) -> do
+          liftIO $ putStrLn ("Debug: /users/:username => " ++ show userName)
+          html =<< liftIO (T.readFile "templates/user.html")
