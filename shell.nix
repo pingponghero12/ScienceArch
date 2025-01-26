@@ -10,6 +10,8 @@ pkgs.mkShell {
             wai-session
             bytestring
             vault
+            wai-session-clientsession
+            data-default
         ]))
         pkgs.haskellPackages.cabal-install
         pkgs.plantuml

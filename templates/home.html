@@ -1,17 +1,11 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Add User</title>
-</head>
-<body>
-    <h1>Add User</h1>
-    <form action="/add_user" method="post">
-        <label for="username">Username:</label>
-        <input type="text" id="username" name="username"><br><br>
-        <label for="email">Email:</label>
-        <input type="email" id="email" name="email"><br><br>
-        <input type="submit" value="Add User">
-    </form>
-</body>
-</html>
+<div class="content-section" id="reading-section">
+    <h2>Current Readings</h2>
+    <div id="reading-list" hx-get="/reading-list" hx-trigger="load">
+    </div>
+</div>
+
+<div class="content-section" id="activity-section">
+    <h2>Activity and Posts</h2>
+    <div id="activity-list" hx-get="/activity-posts" hx-trigger="load">
+    </div>
+</div>

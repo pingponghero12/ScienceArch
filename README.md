@@ -44,9 +44,57 @@ Compile and run:
 bash build.sh
 ```
 
+### Functionalities
+#### General
+1. See home -> Activity + Posts + Reading
+
+#### User related
+1. Register as user
+2. See profile
+3. Login
+4. Logout
+5. List users
+6. See profile of others
+7. Follow user
+8. Make post
+
+#### User Paper
+1. Submit paper - with genres
+2. Resubmit paper - with genres
+3. Read paper
+
+#### User Author
+1. Submit author
+2. Resubtmi author
+3. Author Paper
+
+#### Admin
+1. Accept submit paper
+2. Accept submit author
+3. Accept resubmit paper
+4. Accept resubmit author
+
+### Subsites
+1. Home -> 20 latest activities or posts, 5 articles that user is reading, 
+2. /users/<username> - same goes for seeing your profile
+3. Your reading list -> /users/<username>/readlist
+    - public for everyone
+4. /browse -> Paper list(top 100 papers based on popularity)
+5. /setting -> by default profile
+    - /account -> username, email password, delete user
+    - /profile -> description, image
+6. /admin
+    - /authorsubmitions
+    - /authorresubmitions
+    - /papersubmitions
+    - /paperresubmitions
+7. /login
+8. /register
+
+
 ### The database
 The diagram of the database:
-[diag](uml/entities.png)
+![diag](uml/entities.png)
 
 #### Entity Descriptions:
 
@@ -147,3 +195,9 @@ This table duplicates some fields from the PAPERS table to maintain a complete h
 #### Benefits and Trade-offs
 The database is mostly normalized and as stated above, the redundancies are mostly for the optimization, since the application will be very read heave.
 
+### Future additions
+1. Favourite papers
+2. Citations of paper
+3. Cited by 
+4. Similar(recommended by user)
+5. More info about user profile
