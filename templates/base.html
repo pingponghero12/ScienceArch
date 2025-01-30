@@ -86,8 +86,8 @@
     <header>
         <nav class="nav-links">
             <a href="/">Home</a>
-            <a href="/users">Users</a>
-            <a href="/browse">Browse</a>
+            <a href="#" hx-get="/users" hx-target="#content" hx-swap="inerHTML" hx-push-url="true">Users</a>
+            <a href="#" hx-get="/browse" hx-target="#content" hx-swap="inerHTML" hx-push-url="true">Browse</a>
             <div id="dynamic-nav" hx-get="/nav-links" hx-trigger="load">
             </div>
         </nav>

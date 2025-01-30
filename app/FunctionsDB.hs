@@ -5,6 +5,7 @@ module FunctionsDB where
 import Control.Monad.IO.Class (liftIO)
 import Data.Maybe (fromMaybe)
 import Data.Text.Lazy (Text)
+import Data.Text.Lazy qualified as TL
 import Data.Text.Lazy.Builder qualified as B
 import Data.Text.Lazy.Builder.Int qualified as B
 import Data.Text.Lazy.Builder.RealFloat qualified as B
@@ -45,6 +46,15 @@ intToText = B.toLazyText . B.decimal
 addUser :: Connection -> Text -> Text -> Text -> IO ()
 addUser conn userName email password = do
   execute conn "CALL CreateUserProcedure(?, ?, ?)" (email :: Text, password :: Text, userName :: Text)
+  return ()
+
+insertPaperSubmission :: Connection -> Int -> Text -> Text -> Text -> Text -> IO ()
+insertPaperSubmission conn userId title description format originalTitle = do
+  execute
+    conn
+    "INSERT INTO PAPER_SUBMISSIONS (user_id, title, description, format) \
+    \VALUES (?, ?, ?, ?)"
+    (userId :: Int, title :: Text, description :: Text, format :: Text)
   return ()
 
 getUsers :: Connection -> IO [(Int, Text)]
@@ -132,6 +142,25 @@ getTopPapers conn limitCount = do
     \LIMIT ?"
     (Only limitCount)
 
+renderPapers :: [(Int, Text, Int)] -> Text
+renderPapers papers =
+  TL.concat $
+    map
+      ( \(pid, title, pop) ->
+          TL.concat
+            [ "<div style='margin-bottom: 5px; \
+              \background-color: #262626; \
+              \padding: 10px;'>",
+              "<strong>Title: </strong>",
+              title,
+              " ",
+              "<strong>Popularity: </strong>",
+              TL.pack (show pop),
+              "</div>"
+            ]
+      )
+      papers
+
 renderNavLinksTemplate :: Bool -> Text -> Text
 renderNavLinksTemplate isLoggedIn username =
   if isLoggedIn
@@ -154,9 +183,9 @@ renderAuthSectionTemplate isLoggedIn =
     then "<a href=\"/settings\">Settings</a>"
     else
       mconcat
-        [ "<a href=\"#\" hx-get=\"/login\" hx-target=\"#content\" hx-swap=\"inerHTML\">Log In</a>",
+        [ "<a href=\"#\" hx-get=\"/login\" hx-target=\"#content\" hx-swap=\"inerHTML\" hx-push-url=\"true\">Log In</a>",
           "   ",
-          "<a href=\"/register\">Sign Up</a>"
+          "<a href=\"#\" hx-get=\"/register\" hx-target=\"#content\" hx-swap=\"inerHTML\" hx-push-url=\"true\" >Sign up</a>"
         ]
 
 renderReadingListTemplate :: [(Int, Text)] -> Text

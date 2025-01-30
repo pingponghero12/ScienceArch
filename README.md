@@ -145,7 +145,11 @@ In total, there are 14 triggers.
 
 Overall the normalization was done just in the flight and by later revision. Like I said, I mostly focused to group the concepts in one table, and relations also in tables.
 
-
+## Levels of access
+There are 3 levels of access. 
+1. User not logged in -> can only view.
+2. Normal user -> can add to reading, create posts etc, can also create submissions
+3. Super user -> Normal user + can view and review submissions
 
 ### Future additions
 1. Favourite papers

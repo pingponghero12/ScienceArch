@@ -1,0 +1,16 @@
+<div style="display: flex; justify-content: space-between; align-items: center;">
+  <h2>Browse Papers</h2>
+  <button style="margin-left: auto;"
+          hx-get="/new-submission"
+          hx-target="#content"
+          hx-swap="innerHTML">
+    Add Paper
+  </button>
+</div>
+
+<div id="paper-list"
+     hx-get="/papers"
+     hx-trigger="load"
+     hx-target="#paper-list"
+     hx-swap="innerHTML">
+</div>

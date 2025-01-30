@@ -17,6 +17,7 @@ CREATE TABLE AUTHOR_STATUS (
 
 CREATE TABLE USERS (
   user_id INT AUTO_INCREMENT PRIMARY KEY,
+  admin TINYINT(1) DEFAULT 0,
   username VARCHAR(100) NOT NULL,
   description TEXT,
   image VARCHAR(255),
@@ -448,6 +449,12 @@ FROM USERS u;
 
 
 -- Create users
+CREATE USER 'notlog_user'@'%' IDENTIFIED BY 'notlog1234';
+GRANT SELECT ON papers_db.AllUsers TO 'normal_user'@'%';
+GRANT EXECUTE ON PROCEDURE papers_db.CreateUserProcedure TO 'normal_user'@'%';
+GRANT EXECUTE ON PROCEDURE papers_db.AuthorizationProcedure TO 'normal_user'@'%';
+FLUSH PRIVILEGES;
+
 CREATE USER 'normal_user'@'%' IDENTIFIED BY 'normal1234';
 GRANT SELECT ON papers_db.AllUsers TO 'normal_user'@'%';
 GRANT EXECUTE ON PROCEDURE papers_db.CreateUserProcedure TO 'normal_user'@'%';

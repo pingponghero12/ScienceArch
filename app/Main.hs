@@ -138,7 +138,7 @@ main = do
     get "/register" $ do
       html =<< liftIO (T.readFile "templates/register.html")
 
-    post "/add_user" $ do
+    post "/register" $ do
       liftIO $ putStrLn "Debug: Received POST /add_user request"
       userName <- param @Text "username"
       email <- param @Text "email"
@@ -170,6 +170,40 @@ main = do
       html =<< liftIO (T.readFile "templates/readlist.html")
 
     get "/browse" $ do
+      -- idk what to do about it, not trying now
+      -- will probably move base.html to hs and send with load variable
+      isHtmx <- (== Just "true") <$> header "HX-Request"
+      if isHtmx
+        then do
+          html =<< liftIO (T.readFile "templates/browse.html")
+        else do
+          baseContent <- liftIO (T.readFile "templates/base.html")
+          html baseContent
+          html =<< liftIO (T.readFile "templates/browse.html")
+
+    get "/papers" $ do
       paperList <- liftIO $ getTopPapers conn 100
-      liftIO $ putStrLn ("Debug: /browse => " ++ show paperList)
-      html =<< liftIO (T.readFile "templates/browse.html")
+      html $ renderPapers paperList
+
+    get "/new-submission" $ do
+      maybeUserId <- getSession sessionKey
+      case maybeUserId of
+        Nothing -> html "You are not logged in."
+        Just n -> html =<< liftIO (T.readFile "templates/new-submission.html")
+
+    post "/submit-paper" $ do
+      maybeUserId <- getSession sessionKey
+      case maybeUserId of
+        Nothing -> html "You are not logged in."
+        Just 0 -> html "You are not logged in."
+        Just userId -> do
+          title <- param @Text "title"
+          description <- param @Text "description"
+          format <- param @Text "format"
+          originalTitle <- param @Text "original_title"
+
+          liftIO $ insertPaperSubmission conn userId title description format originalTitle
+          html "Submission created successfully!"
+
+    notFound $ do
+      text "Error 404 - file not found"
