@@ -154,7 +154,7 @@ renderAuthSectionTemplate isLoggedIn =
     then "<a href=\"/settings\">Settings</a>"
     else
       mconcat
-        [ "<a href=\"/login\">Log In</a>",
+        [ "<a href=\"#\" hx-get=\"/login\" hx-target=\"#content\" hx-swap=\"inerHTML\">Log In</a>",
           "   ",
           "<a href=\"/register\">Sign Up</a>"
         ]

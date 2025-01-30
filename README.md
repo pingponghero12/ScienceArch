@@ -6,7 +6,7 @@ ScienceArch is web aplication, which will help users tract read scientific texts
 Technologies used:
 - Haskell
 - MariaDB
-- HTMX + Tailwind
+- HTMX
 - Nix
 
 ### Users
@@ -96,104 +96,51 @@ bash build.sh
 The diagram of the database:
 ![diag](uml/entities.png)
 
-#### Entity Descriptions:
+#### Entities
+I won't go into the details of entities, I belive that they have clear purpouse, which can be read from the UML diagram.
 
-1. Core Entities:
-- `USERS`: Stores user account information and statistics
-- `AUTHORS`: Contains information about paper authors
-- `PAPERS`: Stores academic paper details and metadata
-- `POSTS`: User-created content/discussions
-- `ACTIVITIES`: Tracks user reading activities
+#### Triggers
 
-2. Junction/Relationship Entities:
-- `PAPERS_USER`: Tracks user's reading history of papers
-- `PAPERS_GENRES`: Links papers to their genres
-- `PAPERS_HASHTAGS`: Links papers to hashtags
-- `FOLLOW`: Manages user follow relationships
+• PAPER_SUBMISSION_INSERT_ADD_READ and PAPER_SUBMISSION_UPDATE_ADD_READ:  
+  - These increment the user’s "read" count whenever they move a paper submission from “Plan to read” to another format.  
+  - This will provide the sense of improvment when someone gets more READS, which number will be clearly shown on the profile.
 
-3. Submission/Revision Entities:
-- `PAPER_SUBMISSIONS`: Tracks paper submission process
-- `PAPER_REVISIONS`: Manages paper update proposals
-- `AUTHOR_SUBMISSIONS`: Tracks author verification requests
-- `AUTHOR_REVISIONS`: Manages author information updates
+• PAPER_SUBMISSION_ACCEPTED_ADD_CONTRIBUTION and PAPER_REVISION_ACCEPTED_ADD_CONTRIBUTION:  
+  - Once a paper submission or revision is accepted, the user’s "contributions" are incremented.  
+  - This could help to boost the activity of memmbers, since more internet points the better.
 
-4. Authentication/Reference Entities:
-- `USER_CREDENTIALS`: Stores user authentication data
-- `READ_STATES`: Reference table for reading states
-- `GENRES`: Reference table for available genres
-- `HASHTAGS`: Reference table for available hashtags
+• AUTHOR_SUBMISSION_ACCEPTED_ADD_CONTRIBUTION and AUTHOR_REVISION_ACCEPTED_ADD_CONTRIBUTION:  
+  - Similar logic as paper submissions
+  - Whenever an author submission or revision is officially accepted, the contributions count is updated for that placeholder user.
 
-#### Key Relationships:
-1. User-Content Relations:
-- Users can read papers (PAPERS_USER)
-- Users can create posts (POSTS)
-- Users can follow other users (FOLLOW)
+• PAPERS_USER_INSERT_ACTIVITY and PAPERS_USER_UPDATE_ACTIVITY:  
+  - These log a new row in ACTIVITIES whenever a user-paper relationship is created or changed.  
+  - It’s a idea from Anilist
 
-2. Paper Relations:
-- Papers are written by Authors (one-to-one)
-- Papers can have multiple genres and hashtags
-- Papers can have multiple revisions
+• POST_UPDATE_TIMESTAMP:  
+  - Simple “before update” trigger that keeps the post’s "updated_at" timestamp current.
 
-3. Submission Relations:
-- Users can submit papers
-- Authors can be submitted for verification
-- Papers and Authors can have revision proposals
+• PAPER_REVISION_ACCEPTED_UPDATE_PAPER:  
+  - When a paper revision is accepted, any existing genres/hashtags for that paper are cleared and replaced by the revision’s genres/hashtags.  
+  - This ensures the paper record reflects the latest accepted revision’s metadata.
 
-#### Proposed Triggers:
+• PAPER_DELETE_CLEAR_REFERENCES and USER_DELETE_CLEAR_REFERENCES:  
+  - These clean up related records (e.g., in PAPERS_USER, ACTIVITIES, AUTHOR_PAPER, FOLLOW) when a paper or user is deleted.  
+  - This helps me maintain referential integrity and avoid orphaned rows.
 
-1. User Activity Triggers:
-```sql
-CREATE TRIGGER after_paper_read
-AFTER INSERT ON PAPERS_USER
--- Updates user's read count and paper popularity
+• AUTHOR_SUBMISSION_ACCEPTED_CREATE_AUTHOR and AUTHOR_REVISION_ACCEPTED_UPDATE_AUTHOR:  
+  - After an author submission or revision is accepted, the AUTHORS table is either inserted or updated with the new data.  
+  - This keeps author data consistent whenever an approval is finalized.
 
-CREATE TRIGGER after_user_contribution
-AFTER INSERT ON POSTS
--- Updates user's contribution count
-```
 
-2. Paper Update Triggers:
-```sql
--- BEFORE USER UPDATE
--- AFTER PAPERS USER DELETE
--- BEFORE USER INSERT
--- AFTER PAPERS USER UPDATE
--- UPDATE PAPER STATS
--- UPDATE TIMESTAMP
--- AFTER REVISION APPROVE
--- AFTER PAPER READ
-```
+#### Normalization and Structure
+- I aimed for a normalized design where each concept (Users, Papers, Authors, Submissions, Revisions, etc.) lives in its own table. This naturally avoids most update anomalies and keeps data structures clean.
+- For instance, relationships like MANY-to-MANY between papers and genres/hashtags are handled by join tables (PAPERS_GENRES, PAPERS_HASHTAGS) instead of storing multiple genres/hashtags in a single field.  
+- I introduced some intentional redundancies, especially in tracking user activities and in the separate PAPER_CITATIONS/PAPER_CITES structures. This allows for straightforward queries and better performance for certain workloads, even though it could theoretically be combined or deduplicated.  
 
-### Database Normalization Analysis
+Overall the normalization was done just in the flight and by later revision. Like I said, I mostly focused to group the concepts in one table, and relations also in tables.
 
-The database follows normalization principles up to Third Normal Form (3NF), with strategic denormalization implemented for performance optimization. The basic normalization ensures data integrity while carefully chosen redundancies improve system performance and user experience.
 
-#### Intentional Redundancies
-
-**PAPERS Table**
-```sql
-avg_score: int
-popularity: int
-```
-These fields could be calculated on demand but are stored directly for performance. Given that paper statistics are frequently accessed but rarely updated, this redundancy significantly improves read performance while having minimal impact on write operations.
-
-**USERS Table**
-```sql
-read: int
-contributions: int
-```
-These counters represent frequently accessed user statistics. Computing these values in real-time would require expensive aggregate queries across multiple tables. The redundancy here greatly improves performance of user profile displays and leaderboards.
-
-**PAPER_REVISIONS Table**
-```sql
-title: string
-description: text
-format: string
-```
-This table duplicates some fields from the PAPERS table to maintain a complete history of changes. This redundancy is crucial for the paper revision system, enabling proper review processes and providing rollback capabilities when needed.
-
-#### Benefits and Trade-offs
-The database is mostly normalized and as stated above, the redundancies are mostly for the optimization, since the application will be very read heave.
 
 ### Future additions
 1. Favourite papers
@@ -201,3 +148,5 @@ The database is mostly normalized and as stated above, the redundancies are most
 3. Cited by 
 4. Similar(recommended by user)
 5. More info about user profile
+6. Post activity comments
+7. Likes to postst

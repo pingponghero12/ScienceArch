@@ -1,3 +1,5 @@
+
+<!--
 <!DOCTYPE html>
 <html>
 <head>
@@ -11,3 +13,17 @@
     </form>
 </body>
 </html>
+-->
+
+
+
+<h2>Login Form</h2>
+<form hx-post="/login" hx-target="#content" hx-swap="innerHTML" method="POST">
+    <label for="email">Email:</label>
+    <input type="text" id="email" name="email" />
+
+    <label for="password">Password:</label>
+    <input type="password" id="password" name="password" />
+
+    <button type="submit">Login</button>
+</form>
