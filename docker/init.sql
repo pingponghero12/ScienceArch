@@ -449,6 +449,12 @@ FROM USERS u;
 
 
 -- Create users
+CREATE USER 'notlog_user'@'%' IDENTIFIED BY 'notlog1234';
+GRANT SELECT ON papers_db.AllUsers TO 'normal_user'@'%';
+GRANT EXECUTE ON PROCEDURE papers_db.CreateUserProcedure TO 'normal_user'@'%';
+GRANT EXECUTE ON PROCEDURE papers_db.AuthorizationProcedure TO 'normal_user'@'%';
+FLUSH PRIVILEGES;
+
 CREATE USER 'normal_user'@'%' IDENTIFIED BY 'normal1234';
 GRANT SELECT ON papers_db.AllUsers TO 'normal_user'@'%';
 GRANT EXECUTE ON PROCEDURE papers_db.CreateUserProcedure TO 'normal_user'@'%';

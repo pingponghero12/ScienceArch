@@ -48,6 +48,15 @@ addUser conn userName email password = do
   execute conn "CALL CreateUserProcedure(?, ?, ?)" (email :: Text, password :: Text, userName :: Text)
   return ()
 
+insertPaperSubmission :: Connection -> Int -> Text -> Text -> Text -> Text -> IO ()
+insertPaperSubmission conn userId title description format originalTitle = do
+  execute
+    conn
+    "INSERT INTO PAPER_SUBMISSIONS (user_id, title, description, format) \
+    \VALUES (?, ?, ?, ?)"
+    (userId :: Int, title :: Text, description :: Text, format :: Text)
+  return ()
+
 getUsers :: Connection -> IO [(Int, Text)]
 getUsers conn = do
   results <- query_ conn "SELECT * FROM AllUsers"
@@ -140,8 +149,8 @@ renderPapers papers =
       ( \(pid, title, pop) ->
           TL.concat
             [ "<div style='margin-bottom: 5px; \
-              \background-color: #404040; \
-              \padding: 5px;'>",
+              \background-color: #262626; \
+              \padding: 10px;'>",
               "<strong>Title: </strong>",
               title,
               " ",
