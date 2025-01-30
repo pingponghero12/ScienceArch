@@ -138,7 +138,7 @@ main = do
     get "/register" $ do
       html =<< liftIO (T.readFile "templates/register.html")
 
-    post "/add_user" $ do
+    post "/register" $ do
       liftIO $ putStrLn "Debug: Received POST /add_user request"
       userName <- param @Text "username"
       email <- param @Text "email"
@@ -170,6 +170,8 @@ main = do
       html =<< liftIO (T.readFile "templates/readlist.html")
 
     get "/browse" $ do
-      paperList <- liftIO $ getTopPapers conn 100
-      liftIO $ putStrLn ("Debug: /browse => " ++ show paperList)
       html =<< liftIO (T.readFile "templates/browse.html")
+
+    get "/papers" $ do
+      paperList <- liftIO $ getTopPapers conn 100
+      html $ renderPapers paperList

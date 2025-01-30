@@ -5,6 +5,7 @@ module FunctionsDB where
 import Control.Monad.IO.Class (liftIO)
 import Data.Maybe (fromMaybe)
 import Data.Text.Lazy (Text)
+import Data.Text.Lazy qualified as TL
 import Data.Text.Lazy.Builder qualified as B
 import Data.Text.Lazy.Builder.Int qualified as B
 import Data.Text.Lazy.Builder.RealFloat qualified as B
@@ -132,6 +133,25 @@ getTopPapers conn limitCount = do
     \LIMIT ?"
     (Only limitCount)
 
+renderPapers :: [(Int, Text, Int)] -> Text
+renderPapers papers =
+  TL.concat $
+    map
+      ( \(pid, title, pop) ->
+          TL.concat
+            [ "<div style='margin-bottom: 5px; \
+              \background-color: #404040; \
+              \padding: 5px;'>",
+              "<strong>Title: </strong>",
+              title,
+              " ",
+              "<strong>Popularity: </strong>",
+              TL.pack (show pop),
+              "</div>"
+            ]
+      )
+      papers
+
 renderNavLinksTemplate :: Bool -> Text -> Text
 renderNavLinksTemplate isLoggedIn username =
   if isLoggedIn
@@ -154,9 +174,9 @@ renderAuthSectionTemplate isLoggedIn =
     then "<a href=\"/settings\">Settings</a>"
     else
       mconcat
-        [ "<a href=\"#\" hx-get=\"/login\" hx-target=\"#content\" hx-swap=\"inerHTML\">Log In</a>",
+        [ "<a href=\"#\" hx-get=\"/login\" hx-target=\"#content\" hx-swap=\"inerHTML\" hx-push-url=\"true\">Log In</a>",
           "   ",
-          "<a href=\"/register\">Sign Up</a>"
+          "<a href=\"#\" hx-get=\"/register\" hx-target=\"#content\" hx-swap=\"inerHTML\" hx-push-url=\"true\" >Sign up</a>"
         ]
 
 renderReadingListTemplate :: [(Int, Text)] -> Text
