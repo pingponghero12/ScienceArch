@@ -170,7 +170,16 @@ main = do
       html =<< liftIO (T.readFile "templates/readlist.html")
 
     get "/browse" $ do
-      html =<< liftIO (T.readFile "templates/browse.html")
+      -- idk what to do about it, not trying now
+      -- will probably move base.html to hs and send with load variable
+      isHtmx <- (== Just "true") <$> header "HX-Request"
+      if isHtmx
+        then do
+          html =<< liftIO (T.readFile "templates/browse.html")
+        else do
+          baseContent <- liftIO (T.readFile "templates/base.html")
+          html baseContent
+          html =<< liftIO (T.readFile "templates/browse.html")
 
     get "/papers" $ do
       paperList <- liftIO $ getTopPapers conn 100
@@ -195,5 +204,6 @@ main = do
 
           liftIO $ insertPaperSubmission conn userId title description format originalTitle
           html "Submission created successfully!"
+
     notFound $ do
       text "Error 404 - file not found"
