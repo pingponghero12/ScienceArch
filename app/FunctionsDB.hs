@@ -69,17 +69,15 @@ getUserName conn user_id = do
     (Only txt : _) -> txt
     _ -> ""
 
-verifyUser :: Connection -> Text -> Text -> IO Int
+verifyUser :: Connection -> Text -> Text -> IO (Int, String, Int)
 verifyUser conn email password = do
-  liftIO $ putStrLn "Debug: vU1 successful"
   _ <- execute_ conn "SET @userId = 0"
-  liftIO $ putStrLn "Debug: vU2 successful"
-  _ <- execute conn "CALL AuthorizationProcedure(?, ?, @userId)" (email, password)
-  liftIO $ putStrLn "Debug: vU3 successful"
+  _ <- execute_ conn "SET @userame = \"\""
+  _ <- execute_ conn "SET @admin = -1"
+  _ <- execute conn "CALL AuthorizationProcedure(?, ?, @userId, @username, @admin)" (email, password)
 
-  [Only userId] <- query_ conn "SELECT @userId"
-  liftIO $ putStrLn "Debug: vU4 successful"
-  return userId
+  [(userId, username, admin)] <- query_ conn "SELECT @userId, @username, @admin"
+  return (userId, username, admin)
 
 getLatestPosts :: Connection -> Int -> IO [(Int, Int, Text, Text)]
 getLatestPosts conn limitCount = do
@@ -141,105 +139,3 @@ getTopPapers conn limitCount = do
     \ORDER BY popularity DESC \
     \LIMIT ?"
     (Only limitCount)
-
-renderPapers :: [(Int, Text, Int)] -> Text
-renderPapers papers =
-  TL.concat $
-    map
-      ( \(pid, title, pop) ->
-          TL.concat
-            [ "<div style='margin-bottom: 5px; \
-              \background-color: #262626; \
-              \padding: 10px;'>",
-              "<strong>Title: </strong>",
-              title,
-              " ",
-              "<strong>Popularity: </strong>",
-              TL.pack (show pop),
-              "</div>"
-            ]
-      )
-      papers
-
-renderNavLinksTemplate :: Bool -> Text -> Text
-renderNavLinksTemplate isLoggedIn username =
-  if isLoggedIn
-    then
-      mconcat
-        [ "<a href=\"/users/",
-          username,
-          "\">",
-          username,
-          "</a>",
-          "<a href=\"/users/",
-          username,
-          "/readlist\">Reading List</a>"
-        ]
-    else ""
-
-renderAuthSectionTemplate :: Bool -> Text
-renderAuthSectionTemplate isLoggedIn =
-  if isLoggedIn
-    then "<a href=\"/settings\">Settings</a>"
-    else
-      mconcat
-        [ "<a href=\"#\" hx-get=\"/login\" hx-target=\"#content\" hx-swap=\"inerHTML\" hx-push-url=\"true\">Log In</a>",
-          "   ",
-          "<a href=\"#\" hx-get=\"/register\" hx-target=\"#content\" hx-swap=\"inerHTML\" hx-push-url=\"true\" >Sign up</a>"
-        ]
-
-renderReadingListTemplate :: [(Int, Text)] -> Text
-renderReadingListTemplate [] = "<div class=\"item-row\">No current readings</div>"
-renderReadingListTemplate readings =
-  mconcat
-    [ mconcat
-        [ "<div class=\"item-row\">",
-          "<a href=\"/papers/",
-          intToText paperId,
-          "\">",
-          title,
-          "</a>",
-          "</div>"
-        ]
-      | (paperId, title) <- readings
-    ]
-
-renderActivityPostsTemplate :: [(Int, Int, Maybe Text)] -> [(Int, Int, Text, Text)] -> Text
-renderActivityPostsTemplate activities posts =
-  mconcat
-    [renderActivities activities, renderPosts posts]
-  where
-    renderActivities :: [(Int, Int, Maybe Text)] -> Text
-    renderActivities acts = mconcat $ map renderActivity acts
-
-    renderActivity :: (Int, Int, Maybe Text) -> Text
-    renderActivity (actId, userId, state) =
-      mconcat
-        [ "<div class=\"item-row activity\">",
-          "<p>Activity ",
-          intToText actId,
-          " by User ",
-          intToText userId,
-          maybe "" (" - " <>) state,
-          "</p>",
-          "</div>"
-        ]
-
-    renderPosts :: [(Int, Int, Text, Text)] -> Text
-    renderPosts ps = mconcat $ map renderPost ps
-
-    renderPost :: (Int, Int, Text, Text) -> Text
-    renderPost (_, userId, title, content) =
-      mconcat
-        [ "<div class=\"item-row post\">",
-          "<h3>",
-          title,
-          "</h3>",
-          "<p>",
-          content,
-          "</p>",
-          "<small>Posted by User ",
-          intToText userId,
-          "</small>",
-          "</div>"
-        ]

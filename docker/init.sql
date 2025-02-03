@@ -426,16 +426,24 @@ DELIMITER $$
 CREATE PROCEDURE AuthorizationProcedure(
     IN p_email VARCHAR(255),
     IN p_password VARCHAR(255),
-    OUT p_user_id INT
+    OUT p_user_id INT,
+    OUT p_username VARCHAR(100),
+    OUT p_admin TINYINT(1)
 )
 BEGIN
   set p_user_id = 0;
+  set p_username = "";
+  set p_admin = -1;
 
   SELECT user_id INTO p_user_id 
     FROM USER_CREDENTIALS
     WHERE email = p_email 
     AND password_hash = SHA2(p_password, 256) 
     LIMIT 1;
+
+  SELECT username, admin INTO p_username, p_admin
+    FROM USERS
+    WHERE user_id = p_user_id;
 
 END $$
 
@@ -450,9 +458,9 @@ FROM USERS u;
 
 -- Create users
 CREATE USER 'notlog_user'@'%' IDENTIFIED BY 'notlog1234';
-GRANT SELECT ON papers_db.AllUsers TO 'normal_user'@'%';
-GRANT EXECUTE ON PROCEDURE papers_db.CreateUserProcedure TO 'normal_user'@'%';
-GRANT EXECUTE ON PROCEDURE papers_db.AuthorizationProcedure TO 'normal_user'@'%';
+GRANT SELECT ON papers_db.AllUsers TO 'notlog_user'@'%';
+GRANT EXECUTE ON PROCEDURE papers_db.CreateUserProcedure TO 'notlog_user'@'%';
+GRANT EXECUTE ON PROCEDURE papers_db.AuthorizationProcedure TO 'notlog_user'@'%';
 FLUSH PRIVILEGES;
 
 CREATE USER 'normal_user'@'%' IDENTIFIED BY 'normal1234';
