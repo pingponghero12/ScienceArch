@@ -210,24 +210,23 @@ CREATE TABLE REVISION_HASHTAGS (
 
 DELIMITER $$
 
--- TRIGGER: PAPER_SUBMISSION_INSERT_ADD_READ
 CREATE TRIGGER PAPER_SUBMISSION_INSERT_ADD_READ
-AFTER INSERT ON PAPER_SUBMISSIONS
+AFTER INSERT ON PAPERS_USER
 FOR EACH ROW
 BEGIN
-  IF NEW.format <> 'Plan to read' THEN
+  IF NEW.read_state <> 'Plan to read' THEN
     UPDATE USERS
     SET `read` = `read` + 1
     WHERE user_id = NEW.user_id;
   END IF;
 END$$
 
--- TRIGGER: PAPER_SUBMISSION_UPDATE_ADD_READ
+-- Trigger for updates in PAPERS_USER
 CREATE TRIGGER PAPER_SUBMISSION_UPDATE_ADD_READ
-AFTER UPDATE ON PAPER_SUBMISSIONS
+AFTER UPDATE ON PAPERS_USER
 FOR EACH ROW
 BEGIN
-  IF OLD.format = 'Plan to read' AND NEW.format <> 'Plan to read' THEN
+  IF OLD.read_state = 'Plan to read' AND NEW.read_state <> 'Plan to read' THEN
     UPDATE USERS
     SET `read` = `read` + 1
     WHERE user_id = NEW.user_id;
@@ -243,6 +242,28 @@ BEGIN
     UPDATE USERS
     SET contributions = contributions + 1
     WHERE user_id = NEW.user_id;
+  END IF;
+END$$
+
+CREATE TRIGGER PAPER_SUBMISSION_ACCEPTED_ADD_PAPER
+AFTER UPDATE ON PAPER_SUBMISSIONS
+FOR EACH ROW
+BEGIN
+  IF OLD.accepted = 0 AND NEW.accepted = 1 THEN
+    INSERT INTO PAPERS (
+      title,
+      description,
+      format,
+      original_title,
+      published_at
+    )
+    VALUES (
+      NEW.title,
+      NEW.description,
+      NEW.format,
+      NEW.title,
+      CURRENT_TIMESTAMP
+    );
   END IF;
 END$$
 
@@ -412,7 +433,7 @@ BEGIN
     ) VALUES (
         LAST_INSERT_ID(),
         p_email,
-        SHA2(p_password_hash, 256)
+        BCRYPT(p_password_hash, 256)
     );
 
     COMMIT;
@@ -438,7 +459,7 @@ BEGIN
   SELECT user_id INTO p_user_id 
     FROM USER_CREDENTIALS
     WHERE email = p_email 
-    AND password_hash = SHA2(p_password, 256) 
+    AND password_hash = BCRYPT(p_password, 256) 
     LIMIT 1;
 
   SELECT username, admin INTO p_username, p_admin
